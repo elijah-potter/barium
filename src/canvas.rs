@@ -49,7 +49,7 @@ pub struct CanvasElement {
 }
 
 /// An in-memory canvas.
-#[derive(Default, Debug)]
+#[derive(Default, Clone, Debug)]
 pub struct Canvas {
     /// The visual elements in the canvas.
     elements: Vec<CanvasElement>,

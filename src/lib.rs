@@ -3,6 +3,7 @@ mod canvas;
 mod color;
 mod renderer;
 
-pub use canvas::{Canvas, CanvasElement, CanvasElementVariant, Stroke};
+pub use canvas::{Canvas, CanvasElement, CanvasElementVariant, Stroke, regular_polygon_points};
 pub use color::Color;
 pub use renderer::Renderer;
+pub use glam::Vec2;
