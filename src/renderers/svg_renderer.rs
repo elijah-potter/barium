@@ -132,7 +132,7 @@ impl Renderer for SvgRenderer {
                 write!(self.document, "<polygon points=\"",).unwrap();
 
                 for point in points {
-                    write!(self.document, "{},{} ", point.x, point.y);
+                    write!(self.document, "{},{} ", point.x, point.y).unwrap();
                 }
 
                 write!(self.document, "\"").unwrap();
@@ -190,13 +190,13 @@ impl Renderer for SvgRenderer {
     }
 
     fn finalize(mut self) -> Self::Output {
-        write!(self.document, "<defs>");
+        write!(self.document, "<defs>").unwrap();
 
         for blur_value in self.blur_values {
             write!(self.document, "<filter id=\"f{}\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"{}\" /></filter>", blur_value, blur_value).unwrap();
         }
 
-        write!(self.document, "</defs>");
+        write!(self.document, "</defs>").unwrap();
 
         write!(self.document, "</svg>").unwrap();
 
