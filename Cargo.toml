@@ -3,6 +3,8 @@ name = "denim"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+
 [dependencies]
 glam = "0.20.1"
 image = "0.23.14"
