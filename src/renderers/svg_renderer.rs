@@ -1,11 +1,7 @@
 use glam::Vec2;
 use std::fmt::Write;
 
-use crate::{
-    canvas::{CanvasElement, CanvasElementVariant},
-    color::Color,
-    renderer::Renderer,
-};
+use crate::{canvas::{CanvasElement, CanvasElementPostEffect, CanvasElementVariant}, color::Color, renderer::Renderer};
 
 pub struct SvgRendererSettings {
     pub size: Vec2,
@@ -22,6 +18,7 @@ impl Default for SvgRendererSettings {
 }
 
 pub struct SvgRenderer {
+    document_size: Vec2,
     document: String,
     blur_values: Vec<f32>,
 }
@@ -48,6 +45,7 @@ impl Renderer for SvgRenderer {
         }
 
         Self {
+            document_size: settings.size,
             document,
             blur_values: Vec::new(),
         }
@@ -75,24 +73,43 @@ impl Renderer for SvgRenderer {
                     write!(self.document, "stroke-opacity=\"{}\" ", stroke.color.a()).unwrap();
                 }
 
-                if let Some(blur_std_dev) = element.blur_std_dev {
-                    write!(self.document, " filter=\"url(#f{})\"", blur_std_dev).unwrap();
+                if !element.post_effects.is_empty(){
+                    write!(self.document, "filter=\"").unwrap();
+
+                    for effect in &element.post_effects{
+                        match effect{
+                            CanvasElementPostEffect::GaussianBlur { std_dev } => {
+                                write!(self.document, "url(#f{})", std_dev).unwrap();
+                            },
+                        }
+                    }
+
+                    write!(self.document, "\"").unwrap();
                 }
 
                 write!(self.document, "/>").unwrap();
             }
-            CanvasElementVariant::Circle {
+            CanvasElementVariant::Ellipse {
                 center,
                 radius,
                 fill,
                 stroke,
             } => {
-                write!(
-                    self.document,
-                    "<circle cx=\"{}\" cy=\"{}\" r=\"{}\"",
-                    center.x, center.y, radius
-                )
-                .unwrap();
+                if *radius == Vec2::splat(radius.x) {
+                    write!(
+                        self.document,
+                        "<circle cx=\"{}\" cy=\"{}\" r=\"{}\"",
+                        center.x, center.y, radius.x
+                    )
+                    .unwrap();
+                }else{
+                    write!(
+                        self.document,
+                        "<ellipse cx=\"{}\" cy=\"{}\" rx=\"{}\" ry=\"{}\"",
+                        center.x, center.y, radius.x, radius.y
+                    )
+                    .unwrap();
+                }
 
                 if let Some(fill) = fill {
                     write!(self.document, " fill=\"{}\"", fill.as_hex(false)).unwrap();
@@ -118,8 +135,18 @@ impl Renderer for SvgRenderer {
                     }
                 }
 
-                if let Some(blur_std_dev) = element.blur_std_dev {
-                    write!(self.document, " filter=\"url(#f{})\"", blur_std_dev).unwrap();
+                if !element.post_effects.is_empty(){
+                    write!(self.document, " filter=\"").unwrap();
+
+                    for effect in &element.post_effects{
+                        match effect{
+                            CanvasElementPostEffect::GaussianBlur { std_dev } => {
+                                write!(self.document, "url(#f{})", std_dev).unwrap();
+                            },
+                        }
+                    }
+
+                    write!(self.document, "\"").unwrap();
                 }
 
                 write!(self.document, "/>").unwrap()
@@ -161,30 +188,54 @@ impl Renderer for SvgRenderer {
                     }
                 }
 
-                if let Some(blur_std_dev) = element.blur_std_dev {
-                    write!(self.document, " filter=\"url(#f{})\"", blur_std_dev).unwrap();
+                if !element.post_effects.is_empty(){
+                    write!(self.document, " filter=\"").unwrap();
+
+                    for effect in &element.post_effects{
+                        match effect{
+                            CanvasElementPostEffect::GaussianBlur { std_dev } => {
+                                write!(self.document, "url(#f{})", std_dev).unwrap();
+                            },
+                        }
+                    }
+
+                    write!(self.document, "\"").unwrap();
                 }
 
                 write!(self.document, "/>").unwrap()
             }
             CanvasElementVariant::Cluster { children } => {
-                if let Some(blur_std_dev) = element.blur_std_dev {
-                    write!(self.document, "<g filter=\"url(#f{})\">", blur_std_dev).unwrap();
+                if !element.post_effects.is_empty(){
+                    write!(self.document, "<g filter=\"").unwrap();
+
+                    for effect in &element.post_effects{
+                        match effect{
+                            CanvasElementPostEffect::GaussianBlur { std_dev } => {
+                                write!(self.document, "url(#f{})", std_dev).unwrap();
+                            },
+                        }
+                    }
+
+                    write!(self.document, "\">").unwrap();
                 }
 
                 for child in children {
                     self.render(child);
                 }
 
-                if element.blur_std_dev.is_some() {
+                if !element.post_effects.is_empty() {
                     write!(self.document, "</g>").unwrap();
                 }
             }
         }
 
-        if let Some(blur_std_dev) = element.blur_std_dev {
-            if !self.blur_values.contains(&blur_std_dev) {
-                self.blur_values.push(blur_std_dev);
+        for effect in &element.post_effects{
+            match effect{
+                CanvasElementPostEffect::GaussianBlur { std_dev } => {
+                    if !self.blur_values.contains(&std_dev) {
+                        self.blur_values.push(*std_dev);
+                    }
+                },
             }
         }
     }
@@ -193,7 +244,7 @@ impl Renderer for SvgRenderer {
         write!(self.document, "<defs>").unwrap();
 
         for blur_value in self.blur_values {
-            write!(self.document, "<filter id=\"f{}\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"{}\" /></filter>", blur_value, blur_value).unwrap();
+            write!(self.document, "<filter id=\"f{}\" x=\"-1000%\" y=\"-1000%\" width=\"2000%\" height=\"2000%\"><feGaussianBlur in=\"SourceGraphic\" stdDeviation=\"{}\" /></filter>", blur_value, blur_value).unwrap();
         }
 
         write!(self.document, "</defs>").unwrap();

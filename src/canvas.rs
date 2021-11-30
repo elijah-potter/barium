@@ -17,9 +17,9 @@ pub enum CanvasElementVariant {
     /// A line made up of connected points.
     PolyLine { points: Vec<Vec2>, stroke: Stroke },
     /// A circle with an optional filled color with an optional outline.
-    Circle {
+    Ellipse {
         center: Vec2,
-        radius: f32,
+        radius: Vec2,
         fill: Option<Color>,
         stroke: Option<Stroke>,
     },
@@ -33,6 +33,13 @@ pub enum CanvasElementVariant {
     Cluster { children: Vec<CanvasElement> },
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum CanvasElementPostEffect{
+    GaussianBlur{
+        std_dev: f32
+    }
+}
+
 impl Default for CanvasElementVariant {
     fn default() -> Self {
         Self::Blank
@@ -42,10 +49,10 @@ impl Default for CanvasElementVariant {
 #[derive(Default, Clone, Debug)]
 /// An element that can be drawn to the canvas.
 pub struct CanvasElement {
-    /// The optional standard deviation for a Gaussian Blur. If None, no blur is applied.
-    pub blur_std_dev: Option<f32>,
     /// The type of element being drawn.
     pub variant: CanvasElementVariant,
+    /// Post processing effects to be applied to the element.
+    pub post_effects: Vec<CanvasElementPostEffect>
 }
 
 /// An in-memory canvas.

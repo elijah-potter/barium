@@ -142,6 +142,17 @@ impl From<&Rgba<u8>> for Color {
     }
 }
 
+impl From<Color> for Rgba<u8>{
+    fn from(color: Color) -> Self {
+        Rgba([
+            (color.r() * 255.0) as u8,
+            (color.g() * 255.0) as u8,
+            (color.b() * 255.0) as u8,
+            (color.a() * 255.0) as u8,
+        ])
+    }
+}
+
 impl Mul<f32> for Color {
     type Output = Color;
 
@@ -168,6 +179,16 @@ impl Rem<f32> for Color {
     fn rem(self, rhs: f32) -> Self::Output {
         Color {
             inner: self.inner % rhs,
+        }
+    }
+}
+
+impl Mul<Color> for f32 {
+    type Output = Color;
+
+    fn mul(self, rhs: Color) -> Self::Output {
+        Color {
+            inner: rhs.inner * self,
         }
     }
 }
