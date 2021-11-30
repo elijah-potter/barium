@@ -1,4 +1,4 @@
-use glam::{UVec2, Vec2};
+use glam::UVec2;
 use image::{Rgba, RgbaImage};
 use tiny_skia::{
     LineCap, Paint, PathBuilder, Pixmap, PixmapMut, PixmapPaint, PixmapRef, Rect, Transform,
@@ -170,9 +170,7 @@ impl SkiaRenderer {
         }
 
         if element.post_effects.is_empty() {
-            canvas
-                .data_mut()
-                .copy_from_slice(temp_canvas.data());
+            canvas.data_mut().copy_from_slice(temp_canvas.data());
         } else {
             let mut image = RgbaImage::from_raw(
                 temp_canvas.width(),

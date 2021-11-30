@@ -1,7 +1,11 @@
 use glam::Vec2;
 use std::fmt::Write;
 
-use crate::{canvas::{CanvasElement, CanvasElementPostEffect, CanvasElementVariant}, color::Color, renderer::Renderer};
+use crate::{
+    canvas::{CanvasElement, CanvasElementPostEffect, CanvasElementVariant},
+    color::Color,
+    renderer::Renderer,
+};
 
 pub struct SvgRendererSettings {
     pub size: Vec2,
@@ -73,14 +77,14 @@ impl Renderer for SvgRenderer {
                     write!(self.document, "stroke-opacity=\"{}\" ", stroke.color.a()).unwrap();
                 }
 
-                if !element.post_effects.is_empty(){
+                if !element.post_effects.is_empty() {
                     write!(self.document, "filter=\"").unwrap();
 
-                    for effect in &element.post_effects{
-                        match effect{
+                    for effect in &element.post_effects {
+                        match effect {
                             CanvasElementPostEffect::GaussianBlur { std_dev } => {
                                 write!(self.document, "url(#f{})", std_dev).unwrap();
-                            },
+                            }
                         }
                     }
 
@@ -102,7 +106,7 @@ impl Renderer for SvgRenderer {
                         center.x, center.y, radius.x
                     )
                     .unwrap();
-                }else{
+                } else {
                     write!(
                         self.document,
                         "<ellipse cx=\"{}\" cy=\"{}\" rx=\"{}\" ry=\"{}\"",
@@ -135,14 +139,14 @@ impl Renderer for SvgRenderer {
                     }
                 }
 
-                if !element.post_effects.is_empty(){
+                if !element.post_effects.is_empty() {
                     write!(self.document, " filter=\"").unwrap();
 
-                    for effect in &element.post_effects{
-                        match effect{
+                    for effect in &element.post_effects {
+                        match effect {
                             CanvasElementPostEffect::GaussianBlur { std_dev } => {
                                 write!(self.document, "url(#f{})", std_dev).unwrap();
-                            },
+                            }
                         }
                     }
 
@@ -188,14 +192,14 @@ impl Renderer for SvgRenderer {
                     }
                 }
 
-                if !element.post_effects.is_empty(){
+                if !element.post_effects.is_empty() {
                     write!(self.document, " filter=\"").unwrap();
 
-                    for effect in &element.post_effects{
-                        match effect{
+                    for effect in &element.post_effects {
+                        match effect {
                             CanvasElementPostEffect::GaussianBlur { std_dev } => {
                                 write!(self.document, "url(#f{})", std_dev).unwrap();
-                            },
+                            }
                         }
                     }
 
@@ -205,14 +209,14 @@ impl Renderer for SvgRenderer {
                 write!(self.document, "/>").unwrap()
             }
             CanvasElementVariant::Cluster { children } => {
-                if !element.post_effects.is_empty(){
+                if !element.post_effects.is_empty() {
                     write!(self.document, "<g filter=\"").unwrap();
 
-                    for effect in &element.post_effects{
-                        match effect{
+                    for effect in &element.post_effects {
+                        match effect {
                             CanvasElementPostEffect::GaussianBlur { std_dev } => {
                                 write!(self.document, "url(#f{})", std_dev).unwrap();
-                            },
+                            }
                         }
                     }
 
@@ -229,13 +233,13 @@ impl Renderer for SvgRenderer {
             }
         }
 
-        for effect in &element.post_effects{
-            match effect{
+        for effect in &element.post_effects {
+            match effect {
                 CanvasElementPostEffect::GaussianBlur { std_dev } => {
                     if !self.blur_values.contains(&std_dev) {
                         self.blur_values.push(*std_dev);
                     }
-                },
+                }
             }
         }
     }

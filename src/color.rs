@@ -142,7 +142,7 @@ impl From<&Rgba<u8>> for Color {
     }
 }
 
-impl From<Color> for Rgba<u8>{
+impl From<Color> for Rgba<u8> {
     fn from(color: Color) -> Self {
         Rgba([
             (color.r() * 255.0) as u8,

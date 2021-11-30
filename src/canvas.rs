@@ -34,10 +34,8 @@ pub enum CanvasElementVariant {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub enum CanvasElementPostEffect{
-    GaussianBlur{
-        std_dev: f32
-    }
+pub enum CanvasElementPostEffect {
+    GaussianBlur { std_dev: f32 },
 }
 
 impl Default for CanvasElementVariant {
@@ -52,7 +50,7 @@ pub struct CanvasElement {
     /// The type of element being drawn.
     pub variant: CanvasElementVariant,
     /// Post processing effects to be applied to the element.
-    pub post_effects: Vec<CanvasElementPostEffect>
+    pub post_effects: Vec<CanvasElementPostEffect>,
 }
 
 /// An in-memory canvas.
@@ -85,10 +83,8 @@ pub fn regular_polygon_points(center: Vec2, sides: usize, radius: f32, rotation:
 
     for n in 0..sides {
         points.push(Vec2::new(
-            radius * (2.0 * PI * n as f32 / sides as f32 + rotation).cos()
-                + center.x,
-            radius * (2.0 * PI * n as f32 / sides as f32 + rotation).sin()
-                + center.y,
+            radius * (2.0 * PI * n as f32 / sides as f32 + rotation).cos() + center.x,
+            radius * (2.0 * PI * n as f32 / sides as f32 + rotation).sin() + center.y,
         ))
     }
 
