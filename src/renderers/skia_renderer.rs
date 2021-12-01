@@ -129,9 +129,10 @@ impl SkiaRenderer {
                     for point in points.iter().skip(1) {
                         path.line_to(point.x, point.y);
                     }
-                    let path = path.finish().unwrap();
 
                     if let Some(fill) = fill {
+                        let path = path.clone().finish().unwrap();
+
                         let mut paint = Paint::default();
                         let rgba = Rgba::<u8>::from(*fill);
                         paint.set_color_rgba8(rgba.0[0], rgba.0[1], rgba.0[2], rgba.0[3]);
@@ -147,6 +148,9 @@ impl SkiaRenderer {
                     }
 
                     if let Some(stroke) = stroke {
+                        path.close();
+                        let path = path.finish().unwrap();
+
                         let mut paint = Paint::default();
                         let rgba = Rgba::<u8>::from(stroke.color);
                         paint.set_color_rgba8(rgba.0[0], rgba.0[1], rgba.0[2], rgba.0[3]);
@@ -172,12 +176,7 @@ impl SkiaRenderer {
         if element.post_effects.is_empty() {
             canvas.data_mut().copy_from_slice(temp_canvas.data());
         } else {
-            let mut image = RgbaImage::from_raw(
-                temp_canvas.width(),
-                temp_canvas.height(),
-                temp_canvas.take(),
-            )
-            .unwrap();
+            let mut image = temp_canvas.to_rgba_image();
 
             for effect in &element.post_effects {
                 match effect {
@@ -222,5 +221,20 @@ impl Renderer for SkiaRenderer {
 
     fn finalize(self) -> Self::Output {
         self.canvas
+    }
+}
+
+pub trait ToRgbaImage{
+    fn to_rgba_image(self) -> RgbaImage;
+}
+
+impl ToRgbaImage for Pixmap{
+    fn to_rgba_image(self) -> RgbaImage {
+        RgbaImage::from_raw(
+            self.width(),
+            self.height(),
+            self.take(),
+        )
+        .unwrap()
     }
 }

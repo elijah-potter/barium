@@ -1,10 +1,14 @@
-use std::ops::{Add, Div, Mul, Rem, Sub};
+use std::{
+    num::ParseIntError,
+    ops::{Add, Div, Mul, Rem, Sub},
+};
 
 use glam::Vec4;
 use image::{Rgb, Rgba};
 
 /// Color of an object.
-/// Range is 0..1.
+///
+/// Contains RGBA in floating point. 0.0 is black, 1.0 is white.
 #[derive(Default, Clone, Copy, Debug)]
 pub struct Color {
     inner: Vec4,
@@ -69,7 +73,9 @@ impl Color {
         &mut self.inner.w
     }
 
-    /// Get as a hex string. Alpha is optional.
+    /// Get as a hex string.
+    ///
+    /// Alpha channel is optional
     pub fn as_hex(&self, include_alpha: bool) -> String {
         if include_alpha {
             format!(
@@ -87,6 +93,36 @@ impl Color {
                 (self.b() * 255.0) as u8
             )
         }
+    }
+
+    /// Parses a hex string.
+    ///
+    /// The hex *can* include `#` or `0x` at the beginning, but it is not required.
+    /// If the alpha channel is not included, it will default to 1.0
+    pub fn from_hex(hex: &str) -> Result<Self, ParseIntError> {
+        let mut start_index = if hex.starts_with('#') {
+            1
+        } else if hex.starts_with("0x") {
+            2
+        } else {
+            0
+        };
+
+        let r = u8::from_str_radix(&hex[start_index..start_index + 2], 16)? as f32 / 255.0;
+        start_index += 2;
+        let g = u8::from_str_radix(&hex[start_index..start_index + 2], 16)? as f32 / 255.0;
+        start_index += 2;
+        let b = u8::from_str_radix(&hex[start_index..start_index + 2], 16)? as f32 / 255.0;
+
+        start_index += 2;
+
+        if start_index >= hex.len(){
+            return Ok(Self::new(r, g, b, 1.0));
+        }
+
+        let a = u8::from_str_radix(&hex[start_index..start_index + 2], 16)? as f32 / 255.0;
+
+        Ok(Self::new(r, g, b, a))
     }
 }
 
@@ -168,7 +204,7 @@ impl Div<f32> for Color {
 
     fn div(self, rhs: f32) -> Self::Output {
         Color {
-            inner: self.inner * rhs,
+            inner: self.inner / rhs,
         }
     }
 }

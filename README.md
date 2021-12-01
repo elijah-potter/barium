@@ -1,4 +1,5 @@
-/*!
+# Denim
+
 `denim` is an easy to use canvas, intended to be portable and modular.
 
 ## Quick Start
@@ -66,17 +67,6 @@ canvas.render::<SkiaRenderer>(SkiaRendererSettings {
 ```
 
 You can also look in the `examples` directory for more.
-*/
 
-mod canvas;
-mod color;
-mod renderer;
-pub mod renderers;
-
-pub use canvas::{regular_polygon_points, rect_polygon_points, Canvas, CanvasElement, CanvasElementVariant, Stroke};
-pub use color::Color;
-pub use glam::{UVec2, Vec2};
-pub use renderer::Renderer;
-
-#[cfg(feature = "tiny_skia_renderer")]
-pub use tiny_skia::Pixmap;
+## About the name
+`denim` is named ironically because Wikipedia lists `denim` as a material that canvases are almost never made from.

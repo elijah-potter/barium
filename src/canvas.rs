@@ -5,25 +5,29 @@ use glam::Vec2;
 use crate::{color::Color, renderer::Renderer};
 
 #[derive(Default, Clone, Copy, Debug)]
+/// 
 pub struct Stroke {
     pub color: Color,
     pub width: f32,
 }
 
 #[derive(Clone, Debug)]
+/// A variant of a CanvasElement
 pub enum CanvasElementVariant {
-    /// Nothing.
+    /// Draws nothing.
+    /// 
+    /// This allows CanvasElementVariant to implement Default.
     Blank,
     /// A line made up of connected points.
     PolyLine { points: Vec<Vec2>, stroke: Stroke },
-    /// A circle with an optional filled color with an optional outline.
+    /// A circle with an optional filled color and an optional outline.
     Ellipse {
         center: Vec2,
         radius: Vec2,
         fill: Option<Color>,
         stroke: Option<Stroke>,
     },
-    /// A polygon with an optional filled color with an optional outline.
+    /// A polygon with an optional filled color and an optional outline.
     Polygon {
         points: Vec<Vec2>,
         fill: Option<Color>,
@@ -89,4 +93,9 @@ pub fn regular_polygon_points(center: Vec2, sides: usize, radius: f32, rotation:
     }
 
     points
+}
+
+/// Generates the points needed for a rectangle.
+pub fn rect_polygon_points(top_left: Vec2, bottom_right: Vec2) -> Vec<Vec2>{
+    vec![top_left, Vec2::new(bottom_right.x, top_left.y), bottom_right, Vec2::new(top_left.x, bottom_right.y)]
 }
