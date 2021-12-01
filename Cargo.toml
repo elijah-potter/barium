@@ -14,3 +14,4 @@ tiny-skia = { version = "0.6.1", optional = true }
 default = ["svg_renderer", "tiny_skia_renderer"]
 svg_renderer = []
 tiny_skia_renderer = [ "image", "tiny-skia"]
+obj_renderer = []

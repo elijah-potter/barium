@@ -22,7 +22,7 @@ cargo add --git https://github.com/chilipepperhott/denim denim
 ```rust
 use std::f32::consts::PI;
 
-use denim::renderers::{SkiaRenderer, SkiaRendererSettings, ToRgbaImage};
+use denim::renderers::skia_renderer::{SkiaRenderer, SkiaRendererSettings, ToRgbaImage};
 use denim::{
     regular_polygon_points, Canvas, CanvasElement, CanvasElementVariant,
     Color, Stroke, UVec2, Vec2,
@@ -61,7 +61,7 @@ canvas.render::<SkiaRenderer>(SkiaRendererSettings {
     background_color: Some(Color::from_hex("#2e3440").unwrap()),
 })
 .to_rgba_image()
-.save("smile.png")
+.save("hex.png")
 .unwrap();
 ```
 
@@ -73,7 +73,7 @@ mod color;
 mod renderer;
 pub mod renderers;
 
-pub use canvas::{regular_polygon_points, rect_polygon_points, Canvas, CanvasElement, CanvasElementVariant, Stroke};
+pub use canvas::{regular_polygon_points, rect_polygon_points, Canvas, CanvasElement, CanvasElementVariant, CanvasElementPostEffect, Stroke};
 pub use color::Color;
 pub use glam::{UVec2, Vec2};
 pub use renderer::Renderer;

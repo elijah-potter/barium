@@ -10,20 +10,14 @@ use crate::{
     renderer::Renderer,
 };
 
+#[derive(Clone)]
+/// Settings for [SkiaRenderer].
 pub struct SkiaRendererSettings {
     pub size: UVec2,
     pub background_color: Option<Color>,
 }
 
-impl Default for SkiaRendererSettings {
-    fn default() -> Self {
-        Self {
-            size: UVec2::new(1000, 1000),
-            background_color: Default::default(),
-        }
-    }
-}
-
+/// A renderer to raster images that uses [tiny_skia](https://github.com/RazrFalcon/tiny-skia).
 pub struct SkiaRenderer {
     canvas: Pixmap,
 }

@@ -2,7 +2,7 @@ extern crate denim;
 
 use std::f32::consts::PI;
 
-use denim::renderers::{SkiaRenderer, SkiaRendererSettings, ToRgbaImage};
+use denim::renderers::skia_renderer::{SkiaRenderer, SkiaRendererSettings, ToRgbaImage};
 use denim::{
     rect_polygon_points, regular_polygon_points, Canvas, CanvasElement, CanvasElementVariant,
     Color, Stroke, UVec2, Vec2,

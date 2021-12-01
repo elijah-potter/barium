@@ -7,22 +7,15 @@ use crate::{
     renderer::Renderer,
 };
 
+#[derive(Clone)]
+/// Settings for [SvgRenderer].
 pub struct SvgRendererSettings {
     pub size: Vec2,
     pub background_color: Option<Color>,
 }
 
-impl Default for SvgRendererSettings {
-    fn default() -> Self {
-        Self {
-            size: Vec2::new(1000.0, 1000.0),
-            background_color: Default::default(),
-        }
-    }
-}
-
+/// A renderer to Scalable Vector Graphics.
 pub struct SvgRenderer {
-    document_size: Vec2,
     document: String,
     blur_values: Vec<f32>,
 }
@@ -49,7 +42,6 @@ impl Renderer for SvgRenderer {
         }
 
         Self {
-            document_size: settings.size,
             document,
             blur_values: Vec::new(),
         }
@@ -236,7 +228,7 @@ impl Renderer for SvgRenderer {
         for effect in &element.post_effects {
             match effect {
                 CanvasElementPostEffect::GaussianBlur { std_dev } => {
-                    if !self.blur_values.contains(&std_dev) {
+                    if !self.blur_values.contains(std_dev) {
                         self.blur_values.push(*std_dev);
                     }
                 }
