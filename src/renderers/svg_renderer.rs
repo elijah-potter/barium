@@ -12,10 +12,14 @@ use crate::{
 pub struct SvgRendererSettings {
     pub size: Vec2,
     pub background_color: Option<Color>,
+    /// Uses integers instead of floats in certain situations.
+    /// For complex files, this may reduce file size.
+    pub reduced_precision: bool,
 }
 
 /// A renderer to Scalable Vector Graphics.
 pub struct SvgRenderer {
+    reduced_precision: bool,
     document: String,
     blur_values: Vec<f32>,
 }
@@ -42,6 +46,7 @@ impl Renderer for SvgRenderer {
         }
 
         Self {
+            reduced_precision: settings.reduced_precision,
             document,
             blur_values: Vec::new(),
         }
@@ -53,8 +58,14 @@ impl Renderer for SvgRenderer {
             CanvasElementVariant::PolyLine { points, stroke } => {
                 write!(self.document, "<polyline points=\"").unwrap();
 
-                for point in points {
-                    write!(self.document, "{},{} ", point.x, point.y).unwrap();
+                if self.reduced_precision {
+                    for point in points {
+                        write!(self.document, "{:.0},{:.0} ", point.x, point.y).unwrap();
+                    }
+                } else {
+                    for point in points {
+                        write!(self.document, "{},{} ", point.x, point.y).unwrap();
+                    }
                 }
 
                 write!(
@@ -154,8 +165,14 @@ impl Renderer for SvgRenderer {
             } => {
                 write!(self.document, "<polygon points=\"",).unwrap();
 
-                for point in points {
-                    write!(self.document, "{},{} ", point.x, point.y).unwrap();
+                if self.reduced_precision {
+                    for point in points {
+                        write!(self.document, "{:.0},{:.0} ", point.x, point.y).unwrap();
+                    }
+                } else {
+                    for point in points {
+                        write!(self.document, "{},{} ", point.x, point.y).unwrap();
+                    }
                 }
 
                 write!(self.document, "\"").unwrap();

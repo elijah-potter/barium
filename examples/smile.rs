@@ -3,6 +3,7 @@ extern crate denim;
 use std::f32::consts::PI;
 
 use denim::renderers::skia_renderer::{SkiaRenderer, SkiaRendererSettings, ToRgbaImage};
+use denim::renderers::svg_renderer::{SvgRenderer, SvgRendererSettings};
 use denim::{
     rect_polygon_points, regular_polygon_points, Canvas, CanvasElement, CanvasElementVariant,
     Color, Stroke, UVec2, Vec2,
@@ -67,4 +68,15 @@ fn main() {
         .to_rgba_image()
         .save("smile.png")
         .unwrap();
+
+    // Render the canvas using the svg backend
+    std::fs::write(
+        "smile.svg",
+        canvas.render::<SvgRenderer>(SvgRendererSettings {
+            size: Vec2::new(1920.0, 1080.0),
+            background_color: Some(Color::from_hex("#2E3440").unwrap()),
+            reduced_precision: false,
+        }),
+    )
+    .unwrap();
 }
