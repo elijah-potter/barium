@@ -9,7 +9,7 @@ use image::{Rgb, Rgba};
 /// Color of an object.
 ///
 /// Contains RGBA in floating point. 0.0 is black, 1.0 is white.
-#[derive(Default, Clone, Copy, Debug)]
+#[derive(Default, Clone, Copy, Debug, PartialEq)]
 pub struct Color {
     inner: Vec4,
 }
