@@ -83,7 +83,7 @@ impl SkiaRenderer {
                 if let Some(first) = points.first() {
                     let first = transform.transform(*first);
 
-                    /// Build path
+                    // Build path
                     let mut path = PathBuilder::new();
                     path.move_to(first.x, first.y);
                     for point in points.iter().skip(1) {
