@@ -59,6 +59,9 @@ fn main() {
     canvas
         .render::<SkiaRenderer>(SkiaRendererSettings {
             size: UVec2::new(1920, 1080),
+            zoom: 1.0,
+            translate: Vec2::ZERO,
+            anti_alias: true,
             background_color: Some(Color::from_hex("#2E3440").unwrap()),
         })
         .to_rgba_image()
