@@ -73,7 +73,10 @@ mod color;
 mod renderer;
 pub mod renderers;
 
-pub use canvas::{regular_polygon_points, rect_polygon_points, Canvas, CanvasElement, CanvasElementVariant, CanvasElementPostEffect, Stroke};
+pub use canvas::{
+    rect_polygon_points, regular_polygon_points, Canvas, CanvasElement, CanvasElementPostEffect,
+    CanvasElementVariant, Stroke,
+};
 pub use color::Color;
 pub use glam::{UVec2, Vec2};
 pub use renderer::Renderer;

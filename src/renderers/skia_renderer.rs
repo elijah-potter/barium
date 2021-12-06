@@ -1,5 +1,3 @@
-use std::ops::BitAnd;
-
 use glam::{UVec2, Vec2};
 use image::{Rgba, RgbaImage};
 use tiny_skia::{
@@ -67,7 +65,12 @@ impl SkiaRenderer {
         }
     }
 
-    fn render(transform: &TransformMatrix, anti_alias: bool, mut canvas: PixmapMut, element: &CanvasElement) {
+    fn render(
+        transform: &TransformMatrix,
+        anti_alias: bool,
+        mut canvas: PixmapMut,
+        element: &CanvasElement,
+    ) {
         let mut temp_canvas = if element.post_effects.is_empty() {
             canvas.to_owned()
         } else {
@@ -266,7 +269,12 @@ impl Renderer for SkiaRenderer {
     }
 
     fn render(&mut self, element: &CanvasElement) {
-        Self::render(&self.transform, self.anti_alias, self.canvas.as_mut(), element);
+        Self::render(
+            &self.transform,
+            self.anti_alias,
+            self.canvas.as_mut(),
+            element,
+        );
     }
 
     fn finalize(self) -> Self::Output {

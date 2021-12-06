@@ -4,7 +4,8 @@ use glam::Vec2;
 
 use crate::{
     canvas::{CanvasElement, CanvasElementVariant},
-    renderer::Renderer, regular_polygon_points,
+    regular_polygon_points,
+    renderer::Renderer,
 };
 
 #[derive(Clone)]
@@ -64,10 +65,10 @@ impl Renderer for ObjRenderer {
                         point.x, point.y, self.current_z_offset
                     )
                     .unwrap();
-                    
+
                     self.current_vertex_index += 1;
                 }
-                
+
                 write!(self.obj, "l ").unwrap();
                 for i in self.current_vertex_index - points.len()..self.current_vertex_index {
                     write!(self.obj, "{} ", i).unwrap();
@@ -81,22 +82,27 @@ impl Renderer for ObjRenderer {
                 fill,
                 stroke: _,
             } => {
-                let mut ellipse_points = regular_polygon_points(Vec2::ZERO, self.settings.ellipse_face_count, radius.x, 0.0);
+                let mut ellipse_points = regular_polygon_points(
+                    Vec2::ZERO,
+                    self.settings.ellipse_face_count,
+                    radius.x,
+                    0.0,
+                );
 
-                for point in ellipse_points.iter_mut(){
+                for point in ellipse_points.iter_mut() {
                     point.y *= radius.y / radius.x;
                     *point += *center;
                 }
 
-                self.render(&CanvasElement{
-                    variant: CanvasElementVariant::Polygon{
+                self.render(&CanvasElement {
+                    variant: CanvasElementVariant::Polygon {
                         points: ellipse_points,
                         fill: *fill,
                         stroke: None,
                     },
                     ..Default::default()
                 })
-            },
+            }
             CanvasElementVariant::Polygon {
                 points,
                 fill,
@@ -116,7 +122,15 @@ impl Renderer for ObjRenderer {
                 if let Some(fill) = fill {
                     write!(self.obj, "usemtl f{}\nf ", self.current_face_index).unwrap();
 
-                    writeln!(self.mtl, "newmtl f{}\nKd {} {} {}", self.current_face_index, fill.r(), fill.g(), fill.b()).unwrap();
+                    writeln!(
+                        self.mtl,
+                        "newmtl f{}\nKd {} {} {}",
+                        self.current_face_index,
+                        fill.r(),
+                        fill.g(),
+                        fill.b()
+                    )
+                    .unwrap();
                 } else {
                     write!(self.obj, "usemtl black\n f ").unwrap()
                 }
@@ -130,10 +144,10 @@ impl Renderer for ObjRenderer {
                 self.current_face_index += 1;
             }
             CanvasElementVariant::Cluster { children } => {
-                for child in children{
+                for child in children {
                     self.render(child);
                 }
-            },
+            }
         }
     }
 

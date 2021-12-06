@@ -5,7 +5,7 @@ use glam::Vec2;
 use crate::{color::Color, renderer::Renderer};
 
 #[derive(Default, Clone, Copy, Debug)]
-/// 
+///
 pub struct Stroke {
     pub color: Color,
     pub width: f32,
@@ -15,7 +15,7 @@ pub struct Stroke {
 /// A variant of a CanvasElement
 pub enum CanvasElementVariant {
     /// Draws nothing.
-    /// 
+    ///
     /// This allows CanvasElementVariant to implement Default.
     Blank,
     /// A line made up of connected points.
@@ -96,6 +96,11 @@ pub fn regular_polygon_points(center: Vec2, sides: usize, radius: f32, rotation:
 }
 
 /// Generates the points needed for a rectangle.
-pub fn rect_polygon_points(top_left: Vec2, bottom_right: Vec2) -> Vec<Vec2>{
-    vec![top_left, Vec2::new(bottom_right.x, top_left.y), bottom_right, Vec2::new(top_left.x, bottom_right.y)]
+pub fn rect_polygon_points(top_left: Vec2, bottom_right: Vec2) -> Vec<Vec2> {
+    vec![
+        top_left,
+        Vec2::new(bottom_right.x, top_left.y),
+        bottom_right,
+        Vec2::new(top_left.x, bottom_right.y),
+    ]
 }

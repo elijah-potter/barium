@@ -74,12 +74,12 @@ impl Color {
     }
 
     /// Creates a [Color] from HSV values.
-    /// 
+    ///
     /// Note: all inputs must be of range 0..1.
-    /// 
+    ///
     /// Implementation from [Rosetta Code](https://rosettacode.org/wiki/Color_wheel#Rust).
     #[allow(clippy::many_single_char_names)]
-    pub fn from_hsv(hue: f32, saturation: f32, value: f32) -> Self{
+    pub fn from_hsv(hue: f32, saturation: f32, value: f32) -> Self {
         let hp = hue / (1.0 / 6.0);
         let c = saturation * value;
         let x = c * (1.0 - (hp % 2.0 - 1.0).abs());
@@ -155,7 +155,7 @@ impl Color {
 
         start_index += 2;
 
-        if start_index >= hex.len(){
+        if start_index >= hex.len() {
             return Ok(Self::new(r, g, b, 1.0));
         }
 
