@@ -72,6 +72,7 @@ mod canvas;
 mod color;
 mod renderer;
 pub mod renderers;
+mod transform;
 
 pub use canvas::{
     rect_polygon_points, regular_polygon_points, Canvas, CanvasElement, CanvasElementPostEffect,
@@ -83,3 +84,4 @@ pub use renderer::Renderer;
 
 #[cfg(feature = "tiny_skia_renderer")]
 pub use tiny_skia::Pixmap;
+pub use transform::Transform;

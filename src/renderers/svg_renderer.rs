@@ -5,6 +5,7 @@ use crate::{
     canvas::{CanvasElement, CanvasElementPostEffect, CanvasElementVariant},
     color::Color,
     renderer::Renderer,
+    Transform,
 };
 
 #[derive(Clone)]
@@ -13,7 +14,7 @@ pub struct SvgRendererSettings {
     pub size: Vec2,
     pub background_color: Option<Color>,
     /// Uses integers instead of floats in certain situations.
-    /// For complex files, this may reduce file size.
+    /// For complex files, this may reduce file size significantly.
     pub reduced_precision: bool,
 }
 
@@ -24,38 +25,22 @@ pub struct SvgRenderer {
     blur_values: Vec<f32>,
 }
 
-impl Renderer for SvgRenderer {
-    type Settings = SvgRendererSettings;
-    type Output = String;
-
-    fn new(settings: Self::Settings) -> Self {
-        let mut document = format!(
-            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}\" height=\"{}\">",
-            settings.size.x, settings.size.y
-        );
-
-        if let Some(background) = settings.background_color {
-            write!(
-                document,
-                "<rect fill=\"{}\" width=\"{}\" height=\"{}\"/>",
-                background.as_hex(false),
-                settings.size.x,
-                settings.size.y
-            )
-            .unwrap();
+impl SvgRenderer {
+    fn render(&mut self, element: &CanvasElement, parent_transform: Transform) {
+        // Add up all adjust effects.
+        let mut full_transform = parent_transform;
+        for effect in &element.post_effects {
+            if let CanvasElementPostEffect::Adjust { transform } = effect {
+                full_transform += *transform;
+            }
         }
 
-        Self {
-            reduced_precision: settings.reduced_precision,
-            document,
-            blur_values: Vec::new(),
-        }
-    }
-
-    fn render(&mut self, element: &CanvasElement) {
         match &element.variant {
             CanvasElementVariant::Blank => return,
             CanvasElementVariant::PolyLine { points, stroke } => {
+                // Transform points
+                let points = points.iter().map(|v| v);
+
                 write!(self.document, "<polyline points=\"").unwrap();
 
                 if self.reduced_precision {
@@ -88,6 +73,7 @@ impl Renderer for SvgRenderer {
                             CanvasElementPostEffect::GaussianBlur { std_dev } => {
                                 write!(self.document, "url(#f{})", std_dev).unwrap();
                             }
+                            CanvasElementPostEffect::Adjust { transform } => (),
                         }
                     }
 
@@ -97,23 +83,22 @@ impl Renderer for SvgRenderer {
                 write!(self.document, "/>").unwrap();
             }
             CanvasElementVariant::Ellipse {
-                center,
-                radius,
+                transform,
                 fill,
                 stroke,
             } => {
-                if *radius == Vec2::splat(radius.x) {
+                if transform.scale == Vec2::splat(transform.scale.x) {
                     write!(
                         self.document,
                         "<circle cx=\"{}\" cy=\"{}\" r=\"{}\"",
-                        center.x, center.y, radius.x
+                        transform.translate.x, transform.translate.y, transform.scale.x
                     )
                     .unwrap();
                 } else {
                     write!(
                         self.document,
                         "<ellipse cx=\"{}\" cy=\"{}\" rx=\"{}\" ry=\"{}\"",
-                        center.x, center.y, radius.x, radius.y
+                        transform.translate.x, transform.translate.y, transform.scale.x, transform.scale.y
                     )
                     .unwrap();
                 }
@@ -150,6 +135,7 @@ impl Renderer for SvgRenderer {
                             CanvasElementPostEffect::GaussianBlur { std_dev } => {
                                 write!(self.document, "url(#f{})", std_dev).unwrap();
                             }
+                            CanvasElementPostEffect::Adjust { transform } => (),
                         }
                     }
 
@@ -209,6 +195,7 @@ impl Renderer for SvgRenderer {
                             CanvasElementPostEffect::GaussianBlur { std_dev } => {
                                 write!(self.document, "url(#f{})", std_dev).unwrap();
                             }
+                            CanvasElementPostEffect::Adjust { transform } => (),
                         }
                     }
 
@@ -226,6 +213,7 @@ impl Renderer for SvgRenderer {
                             CanvasElementPostEffect::GaussianBlur { std_dev } => {
                                 write!(self.document, "url(#f{})", std_dev).unwrap();
                             }
+                            CanvasElementPostEffect::Adjust { transform } => (),
                         }
                     }
 
@@ -233,7 +221,7 @@ impl Renderer for SvgRenderer {
                 }
 
                 for child in children {
-                    self.render(child);
+                    self.render(child, full_transform);
                 }
 
                 if !element.post_effects.is_empty() {
@@ -249,8 +237,42 @@ impl Renderer for SvgRenderer {
                         self.blur_values.push(*std_dev);
                     }
                 }
+                CanvasElementPostEffect::Adjust { transform } => (),
             }
         }
+    }
+}
+
+impl Renderer for SvgRenderer {
+    type Settings = SvgRendererSettings;
+    type Output = String;
+
+    fn new(settings: Self::Settings) -> Self {
+        let mut document = format!(
+            "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}\" height=\"{}\">",
+            settings.size.x, settings.size.y
+        );
+
+        if let Some(background) = settings.background_color {
+            write!(
+                document,
+                "<rect fill=\"{}\" width=\"{}\" height=\"{}\"/>",
+                background.as_hex(false),
+                settings.size.x,
+                settings.size.y
+            )
+            .unwrap();
+        }
+
+        Self {
+            reduced_precision: settings.reduced_precision,
+            document,
+            blur_values: Vec::new(),
+        }
+    }
+
+    fn render(&mut self, element: &CanvasElement) {
+        self.render(element, Transform::one())
     }
 
     fn finalize(mut self) -> Self::Output {

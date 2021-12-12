@@ -2,10 +2,9 @@ use std::f32::consts::PI;
 
 use glam::Vec2;
 
-use crate::{color::Color, renderer::Renderer};
+use crate::{renderer::Renderer, Color, Transform};
 
 #[derive(Default, Clone, Copy, Debug)]
-///
 pub struct Stroke {
     pub color: Color,
     pub width: f32,
@@ -22,8 +21,7 @@ pub enum CanvasElementVariant {
     PolyLine { points: Vec<Vec2>, stroke: Stroke },
     /// A circle with an optional filled color and an optional outline.
     Ellipse {
-        center: Vec2,
-        radius: Vec2,
+        transform: Transform,
         fill: Option<Color>,
         stroke: Option<Stroke>,
     },
@@ -39,7 +37,10 @@ pub enum CanvasElementVariant {
 
 #[derive(Clone, Copy, Debug)]
 pub enum CanvasElementPostEffect {
+    /// A standard Gaussian Blur.
     GaussianBlur { std_dev: f32 },
+    /// Move, scale or rotate object.
+    Adjust { transform: Transform },
 }
 
 impl Default for CanvasElementVariant {
@@ -65,10 +66,36 @@ pub struct Canvas {
 }
 
 impl Canvas {
+    /// Create a new [Canvas]
+    pub fn new() -> Self {
+        Self {
+            elements: Vec::new(),
+        }
+    }
+
+    /// Create a canvas from an existing collection of [CanvasElement].
+    pub fn from_raw<C: Into<Vec<CanvasElement>>>(collection: C) -> Self {
+        Self {
+            elements: collection.into(),
+        }
+    }
+
+    /// Draws an element onto the canvas.
     pub fn draw(&mut self, element: CanvasElement) {
         self.elements.push(element);
     }
 
+    /// Removes the last element, returning it if the operation was successful.
+    pub fn undo(&mut self) -> Option<CanvasElement> {
+        self.elements.pop()
+    }
+
+    /// Consumes the canvas and returns the inner [Vec<CanvasElement>].
+    pub fn to_raw(self) -> Vec<CanvasElement> {
+        self.elements
+    }
+
+    /// Render the canvas with a renderer of your choice.
     pub fn render<T: Renderer>(&self, settings: T::Settings) -> T::Output {
         let mut renderer = T::new(settings);
 

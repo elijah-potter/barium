@@ -5,32 +5,50 @@ use std::f32::consts::PI;
 use denim::renderers::skia_renderer::{SkiaRenderer, SkiaRendererSettings, ToRgbaImage};
 use denim::renderers::svg_renderer::{SvgRenderer, SvgRendererSettings};
 use denim::{
-    rect_polygon_points, regular_polygon_points, Canvas, CanvasElement, CanvasElementVariant,
-    Color, Stroke, UVec2, Vec2,
+    rect_polygon_points, regular_polygon_points, Canvas, CanvasElement, CanvasElementPostEffect,
+    CanvasElementVariant, Color, Stroke, Transform, UVec2, Vec2,
 };
 
 fn main() {
     let mut canvas = Canvas::default();
 
-    // Left eye
     canvas.draw(CanvasElement {
-        variant: CanvasElementVariant::Ellipse {
-            center: Vec2::new(300.0, 300.0),
-            radius: Vec2::splat(100.0),
-            fill: Some(Color::from_hex("#BF616A").unwrap()),
-            stroke: None,
+        variant: CanvasElementVariant::Cluster {
+            children: vec![
+                /// Left eye    
+                CanvasElement {
+                    variant: CanvasElementVariant::Ellipse {
+                        transform: Transform {
+                            translate: Vec2::new(300.0, 300.0),
+                            rotation: PI / 4.0,
+                            scale: Vec2::new(100.0, 50.0),
+                        },
+                        fill: Some(Color::from_hex("#BF616A").unwrap()),
+                        stroke: None,
+                    },
+                    ..Default::default()
+                },
+                /// Right eye
+                CanvasElement {
+                    variant: CanvasElementVariant::Ellipse {
+                        transform: Transform {
+                            translate: Vec2::new(1620.0, 300.0),
+                            rotation: 0.0,
+                            scale: Vec2::new(100.0, 50.0),
+                        },
+                        fill: Some(Color::from_hex("#BF616A").unwrap()),
+                        stroke: None,
+                    },
+                    ..Default::default()
+                },
+            ],
         },
-        ..Default::default()
-    });
-
-    // Right eye
-    canvas.draw(CanvasElement {
-        variant: CanvasElementVariant::Ellipse {
-            center: Vec2::new(1620.0, 300.0),
-            radius: Vec2::splat(100.0),
-            fill: Some(Color::from_hex("#BF616A").unwrap()),
-            stroke: None,
-        },
+        post_effects: vec![CanvasElementPostEffect::Adjust {
+            transform: Transform {
+                rotation: PI / 2.0,
+                ..Transform::one()
+            },
+        }],
         ..Default::default()
     });
 
@@ -60,8 +78,6 @@ fn main() {
     canvas
         .render::<SkiaRenderer>(SkiaRendererSettings {
             size: UVec2::new(1920, 1080),
-            zoom: 1.0,
-            translate: Vec2::ZERO,
             anti_alias: true,
             background_color: Some(Color::from_hex("#2E3440").unwrap()),
         })
