@@ -17,6 +17,7 @@ pub struct SvgRendererSettings {
 }
 
 pub struct SvgRenderer {
+    scale: f32,
     ints_only: bool,
     document: String,
 }
@@ -44,9 +45,14 @@ impl Renderer for SvgRenderer {
         }
 
         Self {
+            scale: settings.size.x,
             ints_only: settings.ints_only,
             document,
         }
+    }
+
+    fn resolution_scale(&self) -> f32 {
+        self.scale
     }
 
     fn render(&mut self, shape: &Shape) {
@@ -58,7 +64,7 @@ impl Renderer for SvgRenderer {
 
         for point in &shape.points {
             if self.ints_only {
-                write!(self.document, "{:.0},{:.0} ", point.x, point.y).unwrap();
+                write!(self.document, "{},{} ", point.x.round(), point.y.round()).unwrap();
             } else {
                 write!(self.document, "{},{} ", point.x, point.y).unwrap();
             }
@@ -86,6 +92,8 @@ impl Renderer for SvgRenderer {
             if fill.a() != 1.0 {
                 write!(self.document, "fill-opacity:{};", fill.a()).unwrap();
             }
+        }else{
+            write!(self.document, "fill:none;").unwrap();
         }
 
         write!(self.document, "\"/>").unwrap();

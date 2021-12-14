@@ -1,5 +1,5 @@
 use glam::UVec2;
-use image::RgbaImage;
+use image::{RgbaImage};
 use tiny_skia::{FillRule, Paint, PathBuilder, Pixmap, Transform};
 
 use crate::{Color, Renderer, Shape};
@@ -35,6 +35,10 @@ impl Renderer for SkiaRenderer {
             antialias: settings.antialias,
             canvas,
         }
+    }
+
+    fn resolution_scale(&self) -> f32 {
+        self.canvas.width() as f32
     }
 
     fn render(&mut self, shape: &Shape) {
