@@ -51,18 +51,18 @@ impl Renderer for SvgRenderer {
         }
     }
 
-    fn resolution_scale(&self) -> f32 {
-        self.scale
-    }
-
     fn render(&mut self, shape: &Shape) {
-        if shape.points[0] == shape.points[shape.points.len() - 1] {
+        if shape.points.len() > 3 && shape.points[0] == shape.points[shape.points.len() - 1] {
             write!(self.document, "<polygon points=\"").unwrap();
         } else {
             write!(self.document, "<polyline points=\"").unwrap();
         }
 
-        for point in &shape.points {
+        for point in shape.points.iter().map(|p| {
+            // Transform from Camera Space (range from (-1, -1) to (1, 1)) to Image Space (range from (0, 0) to image size).
+            let mut p = Vec2::new(p.x, -p.y);
+            p * self.scale / 2.0 + self.scale / 2.0
+        }) {
             if self.ints_only {
                 write!(self.document, "{},{} ", point.x.round(), point.y.round()).unwrap();
             } else {

@@ -15,6 +15,16 @@ pub struct Shape {
     pub fill: Option<Color>,
 }
 
+impl Shape{
+    pub fn is_polygon(&self) -> bool{
+        if self.points.len() < 3{
+            false
+        }else{
+            self.points[0] == self.points[self.points.len() - 1]
+        }
+    }
+}
+
 #[derive(Default, Debug, Clone, Copy, PartialEq)]
 pub struct Stroke {
     pub color: Color,
@@ -27,22 +37,37 @@ impl Stroke {
     }
 }
 
+/// A renderer for [Canvas]. 
+/// 
+/// Anyone who wants to implement a renderer should reference either (SkiaRenderer)[crate::renderers::SkiaRenderer] or (SvgRenderer)[crate::renderers::SvgRenderer].
 pub trait Renderer {
+    /// Configuration for the renderer.
     type Settings;
+    /// The intended format the renderer will output.
     type Output;
 
+    /// Create and setup the renderer.
     fn new(settings: Self::Settings) -> Self;
-    fn resolution_scale(&self) -> f32;
+    /// Render a shape. All coordinates in the shape will be in Camera Space.
     fn render(&mut self, shape: &Shape);
+    /// Finalize the render.
     fn finalize(self) -> Self::Output;
 }
 
 #[derive(Debug, Clone)]
+/// A canvas that can be used with many backends.
+///
+/// There are two 'spaces': `World Space` and `View Space`.
+///
+/// The camera starts centered on `(0.0, 0.0)` with a `zoom` of 1.0.
+///
+/// This means that, by default, `View Space` and `World Space` are equal. Once the camera has been changed, any drawing will be from the perspective of `View Space` onto `World Space`.
+///
+/// For example, a rectangle with corners at `(-1, -1)` and `(1, 1)` will be twice as large in World Space if it is drawn while the camera's `zoom` is at `0.5`.
 pub struct Canvas {
     translate: Vec2,
     rotate: f32,
     zoom: f32,
-    size: Vec2,
     shapes: Vec<Shape>,
 }
 
@@ -52,7 +77,6 @@ impl Default for Canvas {
             translate: Default::default(),
             rotate: Default::default(),
             zoom: 1.0,
-            size: Vec2::ONE,
             shapes: Default::default(),
         }
     }
@@ -60,15 +84,10 @@ impl Default for Canvas {
 
 impl Canvas {
     pub fn new(size: Vec2) -> Self {
-        let mut new = Self {
-            size,
-            ..Default::default()
-        };
-
-        new.move_view_to(Vec2::ZERO);
-        new
+        Self::default()
     }
 
+    /// Render the canvas using a renderer of your choice.
     pub fn render<R: Renderer>(&self, settings: R::Settings) -> R::Output {
         let mut renderer = R::new(settings);
 
@@ -76,7 +95,7 @@ impl Canvas {
             let mut transformed_shape = shape.clone();
 
             for point in transformed_shape.points.iter_mut() {
-                *point = self.to_view_space(*point, renderer.resolution_scale());
+                *point = self.to_camera_space(*point);
             }
 
             renderer.render(&transformed_shape);
@@ -85,17 +104,53 @@ impl Canvas {
         renderer.finalize()
     }
 
-    /// Rotate the view.
-    pub fn rotate_view(&mut self, radians: f32) {
+    pub fn to_raw(self) -> Vec<Shape> {
+        self.shapes
+    }
+
+    pub fn as_raw(&self) -> &[Shape] {
+        self.shapes.as_slice()
+    }
+
+    pub fn as_raw_mut(&mut self) -> &mut [Shape] {
+        self.shapes.as_mut_slice()
+    }
+
+    /// Rotate the camera.
+    pub fn rotate_camera(&mut self, radians: f32) {
         self.rotate += radians;
     }
 
-    // Centers the view on a point.
-    pub fn move_view_to(&mut self, location: Vec2) {
-        self.translate = self.size * self.zoom * -0.5 + location;
+    /// Rotate the camera to specific rotation.
+    pub fn rotate_camera_to(&mut self, radians: f32) {
+        self.rotate = radians;
     }
 
-    /// Draws a shape onto the canvas, projected from view.
+    /// Moves the camera by a certain amount. This is not effected by zoom.
+    pub fn move_camera(&mut self, translation: Vec2) {
+        self.translate += translation;
+    }
+
+    /// Centers the camera on a point. This is not effected by zoom.
+    pub fn move_camera_to(&mut self, location: Vec2) {
+        self.translate = location;
+    }
+
+    /// Zoom camera. This cannot be zero.
+    pub fn zoom_camera(&mut self, zoom: f32) {
+        assert!(zoom > 0.0);
+
+        self.zoom *= zoom;
+    }
+
+    /// Zoom to a specific amount.
+    pub fn zoom_camera_to(&mut self, zoom: f32) {
+        assert!(zoom > 0.0);
+
+        self.zoom = zoom;
+    }
+
+    /// Draws a shape onto the canvas, projected from the camera.
     pub fn draw_shape<C: Into<Vec<Vec2>>>(
         &mut self,
         points: C,
@@ -166,24 +221,17 @@ impl Canvas {
         self.draw_shape(points, stroke, fill)
     }
 
-    /// Transform any given point from world space to view space.
+    /// Transform any given point from world space to camera space.
     /// Allows to scale to a given resolution width.
-    pub fn to_view_space(&self, mut point: Vec2, resolution_scale: f32) -> Vec2 {
-        let view_center = self.translate + self.size * self.zoom;
-
-        point = point.rotate(-self.rotate);
-        point = point / self.zoom + view_center;
-        point * resolution_scale / 2.0
+    pub fn to_camera_space(&self, mut point: Vec2) -> Vec2 {
+        ((point - self.translate) / self.zoom).rotate(-self.rotate)
     }
 
-    /// Transform any given point from view space to world space.
+    /// Transform any given point from camera space to world space.
     pub fn to_world_space(&self, mut point: Vec2) -> Vec2 {
-        let view_center = self.translate + self.size * self.zoom * 0.5;
-
-        point = (point - view_center) * self.zoom;
-        point = point.rotate(self.rotate);
-
-        point.y *= -1.0;
-        point
+        point.rotate(self.rotate) * self.zoom + self.translate
     }
 }
+
+#[cfg(test)]
+mod tests {}

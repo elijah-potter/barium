@@ -1,12 +1,12 @@
 extern crate denim;
 
 use denim::{
-    renderers::{SkiaRenderer, SkiaRendererSettings},
-    Canvas, Color, Stroke, UVec2, Vec2,
+    renderers::{SvgRenderer, SvgRendererSettings},
+    Canvas, Color, Stroke, Vec2,
 };
 
 fn main() {
-    // Create a canvas, centered on (0, 0). The view ranges from (-1.0, -1.0) to (1.0, 1.0).
+    // Create a canvas, centered on (0, 0). The camera ranges from (-1.0, -1.0) to (1.0, 1.0).
     let mut canvas = Canvas::new(Vec2::new(2.0, 2.0));
 
     let background_color = Color::from_hex("#2E3440").unwrap();
@@ -52,9 +52,11 @@ fn main() {
         None,
     );
 
-    canvas.render::<SkiaRenderer>(SkiaRendererSettings{
-        size: UVec2::new(1000, 1000),
-        background: Some(background_color),
-        antialias: true,
-    }).save("img.png").unwrap();
+    let svg = canvas.render::<SvgRenderer>(SvgRendererSettings{
+        size: Vec2::splat(1000.0),
+        background: Some(Color::black()),
+        ints_only: false,
+    });
+
+    std::fs::write("smile.svg", svg).unwrap();
 }

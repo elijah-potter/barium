@@ -6,3 +6,4 @@ mod glam_ext;
 pub use canvas::{Canvas, Stroke, Shape, Renderer};
 pub use color::Color;
 pub use glam::{Vec2, UVec2};
+pub use image::RgbaImage;

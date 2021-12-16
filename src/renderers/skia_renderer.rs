@@ -1,5 +1,5 @@
-use glam::UVec2;
-use image::{RgbaImage};
+use glam::{UVec2, Vec2};
+use image::RgbaImage;
 use tiny_skia::{FillRule, Paint, PathBuilder, Pixmap, Transform};
 
 use crate::{Color, Renderer, Shape};
@@ -16,6 +16,7 @@ pub struct SkiaRendererSettings {
 
 pub struct SkiaRenderer {
     antialias: bool,
+    scale: f32,
     canvas: Pixmap,
 }
 
@@ -33,27 +34,37 @@ impl Renderer for SkiaRenderer {
 
         Self {
             antialias: settings.antialias,
+            scale: settings.size.x as f32,
             canvas,
         }
     }
 
-    fn resolution_scale(&self) -> f32 {
-        self.canvas.width() as f32
-    }
-
     fn render(&mut self, shape: &Shape) {
-        if let Some(first) = shape.points.first() {
+        // Transform from Camera Space (range from (-1, -1) to (1, 1)) to Image Space (range from (0, 0) to image size).
+        let mut points = shape.points.iter().map(|p| {
+            let mut p = Vec2::new(p.x, -p.y);
+            p * self.scale / 2.0 + self.scale / 2.0
+        });
+
+        if let Some(first) = points.next() {
             let mut path = PathBuilder::new();
             path.move_to(first.x, first.y);
-            for point in shape.points.iter().skip(1) {
+
+            // Grab second point in case we need to complete a polygon properly.
+            let second = points.next();
+            if let Some(second) = second {
+                path.line_to(second.x, second.y);
+            }
+
+            for point in points {
                 path.line_to(point.x, point.y);
             }
 
-            // Fix ends if polygon
-            if shape.points.len() > 3 && *first == shape.points[shape.points.len() - 1]{
-                let step_two = shape.points[1];
+            // Fix ends of polygon
+            if shape.is_polygon() {
+                let second = second.unwrap();
 
-                path.line_to(step_two.x, step_two.y);
+                path.line_to(second.x, second.y);
             }
 
             let path = path.finish().unwrap();
@@ -96,6 +107,7 @@ impl Renderer for SkiaRenderer {
             self.canvas.width(),
             self.canvas.height(),
             self.canvas.take(),
-        ).unwrap()
+        )
+        .unwrap()
     }
 }
