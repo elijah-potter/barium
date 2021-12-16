@@ -1,8 +1,6 @@
 use glam::Vec2;
 
-use crate::{
-    Color, Renderer, Shape,
-};
+use crate::{Color, Renderer, Shape};
 use std::fmt::Write;
 
 #[derive(Default, Clone, Copy)]
@@ -60,7 +58,7 @@ impl Renderer for SvgRenderer {
 
         for point in shape.points.iter().map(|p| {
             // Transform from Camera Space (range from (-1, -1) to (1, 1)) to Image Space (range from (0, 0) to image size).
-            let mut p = Vec2::new(p.x, -p.y);
+            let p = Vec2::new(p.x, -p.y);
             p * self.scale / 2.0 + self.scale / 2.0
         }) {
             if self.ints_only {
@@ -92,7 +90,7 @@ impl Renderer for SvgRenderer {
             if fill.a() != 1.0 {
                 write!(self.document, "fill-opacity:{};", fill.a()).unwrap();
             }
-        }else{
+        } else {
             write!(self.document, "fill:none;").unwrap();
         }
 

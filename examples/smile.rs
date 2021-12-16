@@ -52,7 +52,7 @@ fn main() {
         None,
     );
 
-    let svg = canvas.render::<SvgRenderer>(SvgRendererSettings{
+    let svg = canvas.render::<SvgRenderer>(SvgRendererSettings {
         size: Vec2::splat(1000.0),
         background: Some(Color::black()),
         ints_only: false,

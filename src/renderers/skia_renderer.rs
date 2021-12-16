@@ -42,7 +42,7 @@ impl Renderer for SkiaRenderer {
     fn render(&mut self, shape: &Shape) {
         // Transform from Camera Space (range from (-1, -1) to (1, 1)) to Image Space (range from (0, 0) to image size).
         let mut points = shape.points.iter().map(|p| {
-            let mut p = Vec2::new(p.x, -p.y);
+            let p = Vec2::new(p.x, -p.y);
             p * self.scale / 2.0 + self.scale / 2.0
         });
 

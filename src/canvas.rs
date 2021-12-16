@@ -15,11 +15,11 @@ pub struct Shape {
     pub fill: Option<Color>,
 }
 
-impl Shape{
-    pub fn is_polygon(&self) -> bool{
-        if self.points.len() < 3{
+impl Shape {
+    pub fn is_polygon(&self) -> bool {
+        if self.points.len() < 3 {
             false
-        }else{
+        } else {
             self.points[0] == self.points[self.points.len() - 1]
         }
     }
@@ -37,8 +37,8 @@ impl Stroke {
     }
 }
 
-/// A renderer for [Canvas]. 
-/// 
+/// A renderer for [Canvas].
+///
 /// Anyone who wants to implement a renderer should reference either (SkiaRenderer)[crate::renderers::SkiaRenderer] or (SvgRenderer)[crate::renderers::SvgRenderer].
 pub trait Renderer {
     /// Configuration for the renderer.
@@ -83,7 +83,7 @@ impl Default for Canvas {
 }
 
 impl Canvas {
-    pub fn new(size: Vec2) -> Self {
+    pub fn new(_size: Vec2) -> Self {
         Self::default()
     }
 
@@ -223,12 +223,12 @@ impl Canvas {
 
     /// Transform any given point from world space to camera space.
     /// Allows to scale to a given resolution width.
-    pub fn to_camera_space(&self, mut point: Vec2) -> Vec2 {
+    pub fn to_camera_space(&self, point: Vec2) -> Vec2 {
         ((point - self.translate) / self.zoom).rotate(-self.rotate)
     }
 
     /// Transform any given point from camera space to world space.
-    pub fn to_world_space(&self, mut point: Vec2) -> Vec2 {
+    pub fn to_world_space(&self, point: Vec2) -> Vec2 {
         point.rotate(self.rotate) * self.zoom + self.translate
     }
 }

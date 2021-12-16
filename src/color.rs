@@ -77,9 +77,9 @@ impl Color {
     /// Implementation from [Rosetta Code](https://rosettacode.org/wiki/Color_wheel#Rust).
     #[allow(clippy::many_single_char_names)]
     pub fn from_hsv(hue: f32, saturation: f32, value: f32) -> Self {
-        if hue + saturation + value > 3.0{
+        if hue + saturation + value > 3.0 {
             panic!("All HSV values must be below 1.0.");
-        } 
+        }
 
         let hp = hue / (1.0 / 6.0);
         let c = saturation * value;
@@ -235,14 +235,14 @@ impl From<Color> for Rgba<u8> {
 }
 
 #[cfg(feature = "tiny_skia_renderer")]
-impl From<Color> for tiny_skia::Color{
+impl From<Color> for tiny_skia::Color {
     fn from(color: Color) -> Self {
         tiny_skia::Color::from_rgba(color.r(), color.g(), color.b(), color.a()).unwrap()
     }
 }
 
 #[cfg(feature = "tiny_skia_renderer")]
-impl From<&Color> for tiny_skia::Color{
+impl From<&Color> for tiny_skia::Color {
     fn from(color: &Color) -> Self {
         tiny_skia::Color::from_rgba(color.r(), color.g(), color.b(), color.a()).unwrap()
     }

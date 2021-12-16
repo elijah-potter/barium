@@ -1,9 +1,9 @@
 mod canvas;
 mod color;
-pub mod renderers;
 mod glam_ext;
+pub mod renderers;
 
-pub use canvas::{Canvas, Stroke, Shape, Renderer};
+pub use canvas::{Canvas, Renderer, Shape, Stroke};
 pub use color::Color;
-pub use glam::{Vec2, UVec2};
+pub use glam::{UVec2, Vec2};
 pub use image::RgbaImage;
