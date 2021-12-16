@@ -99,7 +99,7 @@ impl Canvas {
             }
 
             if let Some(stroke) = &mut transformed_shape.stroke{
-                stroke.width *= self.zoom;
+                stroke.width /= self.zoom;
             }
 
             renderer.render(&transformed_shape);
