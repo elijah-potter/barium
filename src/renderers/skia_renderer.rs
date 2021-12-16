@@ -78,7 +78,7 @@ impl Renderer for SkiaRenderer {
                     &path,
                     &paint,
                     &tiny_skia::Stroke {
-                        width: stroke.width,
+                        width: stroke.width * self.scale,
                         ..Default::default()
                     },
                     Transform::identity(),

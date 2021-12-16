@@ -75,7 +75,7 @@ impl Renderer for SvgRenderer {
                 self.document,
                 "stroke:{};stroke-width:{};",
                 stroke.color.as_hex(false),
-                stroke.width
+                stroke.width * self.scale
             )
             .unwrap();
 

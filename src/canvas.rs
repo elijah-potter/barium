@@ -98,6 +98,10 @@ impl Canvas {
                 *point = self.to_camera_space(*point);
             }
 
+            if let Some(stroke) = &mut transformed_shape.stroke{
+                stroke.width *= self.zoom;
+            }
+
             renderer.render(&transformed_shape);
         }
 
