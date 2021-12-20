@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use crate::{color::Color, glam_ext::Vec2Ext};
 use glam::Vec2;
 
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq)]
 /// A polygonal shape with a stroke and fill.
 pub struct Shape {
     /// Points that make up the shape.
@@ -25,16 +25,23 @@ impl Shape {
     }
 }
 
-#[derive(Default, Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Stroke {
     pub color: Color,
     pub width: f32,
+    pub line_end: LineEnd,
 }
 
 impl Stroke {
-    pub fn new(color: Color, width: f32) -> Self {
-        Self { color, width }
+    pub fn new(color: Color, width: f32, line_end: LineEnd) -> Self {
+        Self { color, width, line_end }
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum LineEnd {
+    Butt,
+    Round,
 }
 
 /// A renderer for [Canvas].
@@ -98,7 +105,7 @@ impl Canvas {
                 *point = self.to_camera_space(*point);
             }
 
-            if let Some(stroke) = &mut transformed_shape.stroke{
+            if let Some(stroke) = &mut transformed_shape.stroke {
                 stroke.width *= self.zoom;
             }
 

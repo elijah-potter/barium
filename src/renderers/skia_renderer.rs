@@ -1,8 +1,8 @@
 use glam::{UVec2, Vec2};
 use image::RgbaImage;
-use tiny_skia::{FillRule, Paint, PathBuilder, Pixmap, Transform};
+use tiny_skia::{FillRule, Paint, PathBuilder, Pixmap, Transform, LineCap};
 
-use crate::{Color, Renderer, Shape};
+use crate::{Color, Renderer, Shape, LineEnd};
 
 #[derive(Default, Clone, Copy)]
 pub struct SkiaRendererSettings {
@@ -13,12 +13,13 @@ pub struct SkiaRendererSettings {
     /// Use antialiasing
     pub antialias: bool,
     /// Will make sure to include everything vertically when mapping from Camera Space to the image. Otherwise will do so horizontally.
-    pub preserve_height: bool
+    pub preserve_height: bool,
 }
 
 pub struct SkiaRenderer {
     antialias: bool,
     scale: f32,
+    center_offset: Vec2,
     canvas: Pixmap,
 }
 
@@ -34,15 +35,18 @@ impl Renderer for SkiaRenderer {
             canvas.fill(background.into());
         }
 
-        let scale = if settings.preserve_height{
-            settings.size.y as f32
-        }else{
-            settings.size.x as f32
+        let (scale, center_offset) = if settings.preserve_height {
+            let scale = settings.size.y as f32 / 2.0;
+            (scale, Vec2::new(settings.size.x as f32 / 2.0 / scale, 1.0))
+        } else {
+            let scale = settings.size.x as f32 / 2.0;
+            (scale, Vec2::new(1.0, settings.size.y as f32 / 2.0 / scale))
         };
 
         Self {
             antialias: settings.antialias,
             scale,
+            center_offset,
             canvas,
         }
     }
@@ -50,8 +54,8 @@ impl Renderer for SkiaRenderer {
     fn render(&mut self, shape: &Shape) {
         // Transform from Camera Space (range from (-1, -1) to (1, 1)) to Image Space (range from (0, 0) to image size).
         let mut points = shape.points.iter().map(|p| {
-            let p = Vec2::new(p.x, -p.y);
-            p * self.scale / 2.0 + self.scale / 2.0
+            let p = Vec2::new(p.x, -p.y) + self.center_offset;
+            p * self.scale
         });
 
         if let Some(first) = points.next() {
@@ -86,7 +90,11 @@ impl Renderer for SkiaRenderer {
                     &path,
                     &paint,
                     &tiny_skia::Stroke {
-                        width: stroke.width * self.scale / 2.0,
+                        width: stroke.width * self.scale,
+                        line_cap: match stroke.line_end{
+                            LineEnd::Butt => LineCap::Butt,
+                            LineEnd::Round => LineCap::Round,
+                        },
                         ..Default::default()
                     },
                     Transform::identity(),

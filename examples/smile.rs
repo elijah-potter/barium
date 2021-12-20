@@ -2,7 +2,7 @@ extern crate denim;
 
 use denim::{
     renderers::{SvgRenderer, SvgRendererSettings},
-    Canvas, Color, Stroke, Vec2,
+    Canvas, Color, Stroke, Vec2, LineEnd,
 };
 
 fn main() {
@@ -48,6 +48,7 @@ fn main() {
         Some(Stroke {
             color: background_color,
             width: 10.0,
+            line_end: LineEnd::Butt
         }),
         None,
     );

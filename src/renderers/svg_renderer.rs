@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{Color, Renderer, Shape};
+use crate::{Color, Renderer, Shape, LineEnd};
 use std::fmt::Write;
 
 #[derive(Default, Clone, Copy)]
@@ -18,6 +18,7 @@ pub struct SvgRendererSettings {
 
 pub struct SvgRenderer {
     scale: f32,
+    center_offset: Vec2,
     ints_only: bool,
     document: String,
 }
@@ -44,14 +45,17 @@ impl Renderer for SvgRenderer {
             .unwrap();
         }
 
-        let scale = if settings.preserve_height{
-            settings.size.y as f32
-        }else{
-            settings.size.x as f32
+        let (scale, center_offset) = if settings.preserve_height {
+            let scale = settings.size.y as f32 / 2.0;
+            (scale, Vec2::new(settings.size.x as f32 / 2.0 / scale, 1.0))
+        } else {
+            let scale = settings.size.x as f32 / 2.0;
+            (scale, Vec2::new(1.0, settings.size.y as f32 / 2.0 / scale))
         };
 
         Self {
             scale,
+            center_offset,
             ints_only: settings.ints_only,
             document,
         }
@@ -66,8 +70,8 @@ impl Renderer for SvgRenderer {
 
         for point in shape.points.iter().map(|p| {
             // Transform from Camera Space (range from (-1, -1) to (1, 1)) to Image Space (range from (0, 0) to image size).
-            let p = Vec2::new(p.x, -p.y);
-            p * self.scale / 2.0 + self.scale / 2.0
+            let p = Vec2::new(p.x, -p.y) + self.center_offset;
+            p * self.scale
         }) {
             if self.ints_only {
                 write!(self.document, "{},{} ", point.x.round(), point.y.round()).unwrap();
@@ -89,6 +93,11 @@ impl Renderer for SvgRenderer {
 
             if stroke.color.a() != 1.0 {
                 write!(self.document, "stroke-opacity:{};", stroke.color.a()).unwrap();
+            }
+
+            match stroke.line_end{
+                LineEnd::Butt => todo!(),
+                LineEnd::Round => write!(self.document, "stroke-linecap:round;").unwrap(),
             }
         }
 
