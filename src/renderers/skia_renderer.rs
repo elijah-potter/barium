@@ -12,6 +12,8 @@ pub struct SkiaRendererSettings {
     pub background: Option<Color>,
     /// Use antialiasing
     pub antialias: bool,
+    /// Will make sure to include everything vertically when mapping from Camera Space to the image. Otherwise will do so horizontally.
+    pub preserve_height: bool
 }
 
 pub struct SkiaRenderer {
@@ -32,9 +34,15 @@ impl Renderer for SkiaRenderer {
             canvas.fill(background.into());
         }
 
+        let scale = if settings.preserve_height{
+            settings.size.y as f32
+        }else{
+            settings.size.x as f32
+        };
+
         Self {
             antialias: settings.antialias,
-            scale: settings.size.x as f32,
+            scale,
             canvas,
         }
     }
@@ -78,7 +86,7 @@ impl Renderer for SkiaRenderer {
                     &path,
                     &paint,
                     &tiny_skia::Stroke {
-                        width: stroke.width * self.scale,
+                        width: stroke.width * self.scale / 2.0,
                         ..Default::default()
                     },
                     Transform::identity(),

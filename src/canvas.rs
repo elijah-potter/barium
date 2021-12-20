@@ -83,7 +83,7 @@ impl Default for Canvas {
 }
 
 impl Canvas {
-    pub fn new(_size: Vec2) -> Self {
+    pub fn new() -> Self {
         Self::default()
     }
 
@@ -99,7 +99,7 @@ impl Canvas {
             }
 
             if let Some(stroke) = &mut transformed_shape.stroke{
-                stroke.width /= self.zoom;
+                stroke.width *= self.zoom;
             }
 
             renderer.render(&transformed_shape);
@@ -228,12 +228,12 @@ impl Canvas {
     /// Transform any given point from world space to camera space.
     /// Allows to scale to a given resolution width.
     pub fn to_camera_space(&self, point: Vec2) -> Vec2 {
-        ((point - self.translate) / self.zoom).rotate(-self.rotate)
+        ((point - self.translate) * self.zoom).rotate(-self.rotate)
     }
 
     /// Transform any given point from camera space to world space.
     pub fn to_world_space(&self, point: Vec2) -> Vec2 {
-        point.rotate(self.rotate) * self.zoom + self.translate
+        point.rotate(self.rotate) / self.zoom + self.translate
     }
 }
 

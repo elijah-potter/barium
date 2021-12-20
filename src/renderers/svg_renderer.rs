@@ -12,6 +12,8 @@ pub struct SvgRendererSettings {
     /// Whether or not to include floating point numbers.
     /// This can dramatically reduce file size.
     pub ints_only: bool,
+    /// Will make sure to include everything vertically when mapping from Camera Space to the image. Otherwise will do so horizontally.
+    pub preserve_height: bool
 }
 
 pub struct SvgRenderer {
@@ -42,8 +44,14 @@ impl Renderer for SvgRenderer {
             .unwrap();
         }
 
+        let scale = if settings.preserve_height{
+            settings.size.y as f32
+        }else{
+            settings.size.x as f32
+        };
+
         Self {
-            scale: settings.size.x,
+            scale,
             ints_only: settings.ints_only,
             document,
         }
@@ -75,7 +83,7 @@ impl Renderer for SvgRenderer {
                 self.document,
                 "stroke:{};stroke-width:{};",
                 stroke.color.as_hex(false),
-                stroke.width * self.scale
+                stroke.width * self.scale / 2.0
             )
             .unwrap();
 

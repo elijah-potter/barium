@@ -7,7 +7,7 @@ use denim::{
 
 fn main() {
     // Create a canvas, centered on (0, 0). The camera ranges from (-1.0, -1.0) to (1.0, 1.0).
-    let mut canvas = Canvas::new(Vec2::new(2.0, 2.0));
+    let mut canvas = Canvas::new();
 
     let background_color = Color::from_hex("#2E3440").unwrap();
 
@@ -56,6 +56,7 @@ fn main() {
         size: Vec2::splat(1000.0),
         background: Some(Color::black()),
         ints_only: false,
+        preserve_height: false
     });
 
     std::fs::write("smile.svg", svg).unwrap();
