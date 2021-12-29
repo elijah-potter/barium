@@ -237,14 +237,26 @@ impl From<Color> for Rgba<u8> {
 #[cfg(feature = "tiny_skia_renderer")]
 impl From<Color> for tiny_skia::Color {
     fn from(color: Color) -> Self {
-        tiny_skia::Color::from_rgba(color.r(), color.g(), color.b(), color.a()).unwrap()
+        tiny_skia::Color::from_rgba(
+            color.r().clamp(0.0, 1.0),
+            color.g().clamp(0.0, 1.0),
+            color.b().clamp(0.0, 1.0),
+            color.a().clamp(0.0, 1.0),
+        )
+        .unwrap()
     }
 }
 
 #[cfg(feature = "tiny_skia_renderer")]
 impl From<&Color> for tiny_skia::Color {
     fn from(color: &Color) -> Self {
-        tiny_skia::Color::from_rgba(color.r(), color.g(), color.b(), color.a()).unwrap()
+        tiny_skia::Color::from_rgba(
+            color.r().clamp(0.0, 1.0),
+            color.g().clamp(0.0, 1.0),
+            color.b().clamp(0.0, 1.0),
+            color.a().clamp(0.0, 1.0),
+        )
+        .unwrap()
     }
 }
 
