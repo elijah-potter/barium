@@ -56,20 +56,24 @@ impl Renderer for SvgRenderer {
             (scale, Vec2::new(1.0, settings.size.y as f32 / 2.0 / scale))
         };
 
+        let circle_vertex_threshold = if settings.circle_vertex_threshold < 3 {
+            3
+        } else {
+            settings.circle_vertex_threshold
+        };
+
         Self {
             scale,
             center_offset,
             ints_only: settings.ints_only,
-            circle_vertex_threshold: settings.circle_vertex_threshold,
+            circle_vertex_threshold,
             document,
         }
     }
 
     fn render(&mut self, shape: &Shape) {
         // Check if shape approximates a circle, if so, render it as such.
-        let is_circle = if shape.points.len() > 3
-            && shape.points.len() >= self.circle_vertex_threshold
-            && shape.is_polygon()
+        let is_circle = if shape.points.len() >= self.circle_vertex_threshold && shape.is_polygon()
         {
             let center = shape.points.iter().sum::<Vec2>() / shape.points.len() as f32;
             let d = center.distance(shape.points[0]);
@@ -90,7 +94,7 @@ impl Renderer for SvgRenderer {
             if let Some((circle_center, circle_radius)) = is_circle {
                 write!(
                     self.document,
-                    "<circle cx=\"{}\" cy=\"{}\" r=\"{}\"",
+                    "<circle cx=\"{}\" cy=\"{}\" r=\"{}",
                     circle_center.x, circle_center.y, circle_radius
                 )
                 .unwrap();
