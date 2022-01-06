@@ -1,6 +1,6 @@
 use glam::Vec2;
 
-use crate::{Color, Renderer, Shape, LineEnd};
+use crate::{Color, LineEnd, Renderer, Shape};
 use std::fmt::Write;
 
 #[derive(Default, Clone, Copy)]
@@ -13,13 +13,16 @@ pub struct SvgRendererSettings {
     /// This can dramatically reduce file size.
     pub ints_only: bool,
     /// Will make sure to include everything vertically when mapping from Camera Space to the image. Otherwise will do so horizontally.
-    pub preserve_height: bool
+    pub preserve_height: bool,
+    /// The number of vertices a shape must have to qualify for circle estimation checking.
+    pub circle_vertex_threshold: usize,
 }
 
 pub struct SvgRenderer {
     scale: f32,
     center_offset: Vec2,
     ints_only: bool,
+    circle_vertex_threshold: usize,
     document: String,
 }
 
@@ -57,26 +60,58 @@ impl Renderer for SvgRenderer {
             scale,
             center_offset,
             ints_only: settings.ints_only,
+            circle_vertex_threshold: settings.circle_vertex_threshold,
             document,
         }
     }
 
     fn render(&mut self, shape: &Shape) {
-        if shape.points.len() > 3 && shape.points[0] == shape.points[shape.points.len() - 1] {
-            write!(self.document, "<polygon points=\"").unwrap();
+        // Check if shape approximates a circle, if so, render it as such.
+        let is_circle = if shape.points.len() > 3
+            && shape.points.len() >= self.circle_vertex_threshold
+            && shape.is_polygon()
+        {
+            let center = shape.points.iter().sum::<Vec2>() / shape.points.len() as f32;
+            let d = center.distance(shape.points[0]);
+
+            let mut is_circle = Some((center, d));
+            for point in &shape.points {
+                if center.distance(*point) - d > d * 0.1 {
+                    is_circle = None;
+                    break;
+                }
+            }
+            is_circle
+        } else {
+            None
+        };
+
+        if shape.points.len() > 3 && shape.is_polygon() {
+            if let Some((circle_center, circle_radius)) = is_circle {
+                write!(
+                    self.document,
+                    "<circle cx=\"{}\" cy=\"{}\" r=\"{}\"",
+                    circle_center.x, circle_center.y, circle_radius
+                )
+                .unwrap();
+            } else {
+                write!(self.document, "<polygon points=\"").unwrap();
+            }
         } else {
             write!(self.document, "<polyline points=\"").unwrap();
         }
 
-        for point in shape.points.iter().map(|p| {
-            // Transform from Camera Space (range from (-1, -1) to (1, 1)) to Image Space (range from (0, 0) to image size).
-            let p = Vec2::new(p.x, -p.y) + self.center_offset;
-            p * self.scale
-        }) {
-            if self.ints_only {
-                write!(self.document, "{},{} ", point.x.round(), point.y.round()).unwrap();
-            } else {
-                write!(self.document, "{},{} ", point.x, point.y).unwrap();
+        if is_circle.is_none() {
+            for point in shape.points.iter().map(|p| {
+                // Transform from Camera Space (range from (-1, -1) to (1, 1)) to Image Space (range from (0, 0) to image size).
+                let p = Vec2::new(p.x, -p.y) + self.center_offset;
+                p * self.scale
+            }) {
+                if self.ints_only {
+                    write!(self.document, "{},{} ", point.x.round(), point.y.round()).unwrap();
+                } else {
+                    write!(self.document, "{},{} ", point.x, point.y).unwrap();
+                }
             }
         }
 
@@ -95,7 +130,7 @@ impl Renderer for SvgRenderer {
                 write!(self.document, "stroke-opacity:{};", stroke.color.a()).unwrap();
             }
 
-            match stroke.line_end{
+            match stroke.line_end {
                 LineEnd::Butt => todo!(),
                 LineEnd::Round => write!(self.document, "stroke-linecap:round;").unwrap(),
             }

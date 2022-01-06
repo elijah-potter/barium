@@ -57,7 +57,8 @@ fn main() {
         size: Vec2::splat(1000.0),
         background: Some(Color::black()),
         ints_only: false,
-        preserve_height: false
+        preserve_height: false,
+        circle_vertex_threshold: 32,
     });
 
     std::fs::write("smile.svg", svg).unwrap();
