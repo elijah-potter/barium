@@ -36,10 +36,6 @@ impl Color {
         Color::new(0.0, 0.0, 0.0, 0.0)
     }
 
-    pub fn transparent() -> Self {
-        Color::new(0.0, 0.0, 0.0, 0.0)
-    }
-
     pub fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
         Self {
             inner: Vec4::new(r, g, b, a),
