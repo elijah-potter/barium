@@ -78,7 +78,7 @@ impl Renderer for SvgRenderer {
             let center = shape.points.iter().sum::<Vec2>() / shape.points.len() as f32;
             let d = center.distance(shape.points[0]);
 
-            let mut is_circle = Some((Vec2::new(center.x, -center.y) + self.center_offset * self.scale + , d * self.scale));
+            let mut is_circle = Some((Vec2::new(center.x, -center.y) + self.center_offset * self.scale, d * self.scale));
             for point in &shape.points {
                 if center.distance(*point) - d > d * 0.1 {
                     is_circle = None;
