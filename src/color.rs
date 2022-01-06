@@ -63,6 +63,12 @@ impl Color {
     }
 
     #[inline]
+    /// Gets the average of the RGB values. 
+    pub fn value(&self) -> f32{
+        (self.r() + self.g() + self.b()) / 3.0
+    }
+
+    #[inline]
     pub fn r_mut(&mut self) -> &mut f32 {
         &mut self.inner.x
     }
