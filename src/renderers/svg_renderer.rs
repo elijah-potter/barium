@@ -126,7 +126,7 @@ impl Renderer for SvgRenderer {
                 self.document,
                 "stroke:{};stroke-width:{};",
                 stroke.color.as_hex(false),
-                stroke.width * self.scale / 2.0
+                stroke.width * self.scale
             )
             .unwrap();
 
@@ -135,7 +135,7 @@ impl Renderer for SvgRenderer {
             }
 
             match stroke.line_end {
-                LineEnd::Butt => todo!(),
+                LineEnd::Butt => write!(self.document, "stroke-linecap:butt;").unwrap(),
                 LineEnd::Round => write!(self.document, "stroke-linecap:round;").unwrap(),
             }
         }

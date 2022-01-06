@@ -1,8 +1,8 @@
 extern crate denim;
 
 use denim::{
-    renderers::{SvgRenderer, SvgRendererSettings},
-    Canvas, Color, Stroke, Vec2, LineEnd,
+    renderers::{SkiaRenderer, SkiaRendererSettings, SvgRenderer, SvgRendererSettings},
+    Canvas, Color, LineEnd, Stroke, UVec2, Vec2,
 };
 
 fn main() {
@@ -47,11 +47,19 @@ fn main() {
         ],
         Some(Stroke {
             color: background_color,
-            width: 10.0,
-            line_end: LineEnd::Butt
+            width: 0.1,
+            line_end: LineEnd::Butt,
         }),
         None,
     );
+
+    let png = canvas.render::<SkiaRenderer>(SkiaRendererSettings {
+        size: UVec2::splat(1000),
+        background: Some(Color::black()),
+        preserve_height: false,
+        antialias: true,
+    });
+    png.save("smile.png").unwrap();
 
     let svg = canvas.render::<SvgRenderer>(SvgRendererSettings {
         size: Vec2::splat(1000.0),

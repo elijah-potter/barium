@@ -1,6 +1,5 @@
 mod canvas;
 mod color;
-mod glam_ext;
 pub mod renderers;
 
 pub use canvas::{Canvas, Renderer, Shape, Stroke, LineEnd};

@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
-use crate::{color::Color, glam_ext::Vec2Ext};
-use glam::Vec2;
+use crate::{color::Color};
+use glam::{Vec2, Mat2};
 
 #[derive(Debug, Clone, PartialEq)]
 /// A polygonal shape with a stroke and fill.
@@ -72,19 +72,21 @@ pub trait Renderer {
 ///
 /// For example, a rectangle with corners at `(-1, -1)` and `(1, 1)` will be twice as large in World Space if it is drawn while the camera's `zoom` is at `0.5`.
 pub struct Canvas {
-    translate: Vec2,
-    rotate: f32,
     zoom: f32,
+    translate: Vec2,
+    to_camera_mat: Mat2,
+    to_world_mat: Mat2,
     shapes: Vec<Shape>,
 }
 
 impl Default for Canvas {
     fn default() -> Self {
         Self {
-            translate: Default::default(),
-            rotate: Default::default(),
             zoom: 1.0,
-            shapes: Default::default(),
+            translate: Vec2::ZERO,
+            to_camera_mat: Mat2::IDENTITY,
+            to_world_mat: Mat2::IDENTITY,
+            shapes: Vec::new(),
         }
     }
 }
@@ -129,12 +131,9 @@ impl Canvas {
 
     /// Rotate the camera.
     pub fn rotate_camera(&mut self, radians: f32) {
-        self.rotate += radians;
-    }
-
-    /// Rotate the camera to specific rotation.
-    pub fn rotate_camera_to(&mut self, radians: f32) {
-        self.rotate = radians;
+        let rotate_mat = Mat2::from_angle(radians);
+        self.to_camera_mat = rotate_mat.mul_mat2(&self.to_camera_mat);
+        self.to_world_mat = self.to_camera_mat.inverse();
     }
 
     /// Moves the camera by a certain amount. This is not effected by zoom.
@@ -142,23 +141,11 @@ impl Canvas {
         self.translate += translation;
     }
 
-    /// Centers the camera on a point. This is not effected by zoom.
-    pub fn move_camera_to(&mut self, location: Vec2) {
-        self.translate = location;
-    }
-
-    /// Zoom camera. This cannot be zero.
+    /// Zoom camera
     pub fn zoom_camera(&mut self, zoom: f32) {
-        assert!(zoom > 0.0);
-
+        self.to_camera_mat *= zoom;
+        self.to_world_mat = self.to_camera_mat.inverse();
         self.zoom *= zoom;
-    }
-
-    /// Zoom to a specific amount.
-    pub fn zoom_camera_to(&mut self, zoom: f32) {
-        assert!(zoom > 0.0);
-
-        self.zoom = zoom;
     }
 
     /// Draws a shape onto the canvas, projected from the camera.
@@ -235,12 +222,14 @@ impl Canvas {
     /// Transform any given point from world space to camera space.
     /// Allows to scale to a given resolution width.
     pub fn to_camera_space(&self, point: Vec2) -> Vec2 {
-        ((point - self.translate) * self.zoom).rotate(-self.rotate)
+        let point = point - self.translate;
+        self.to_camera_mat.mul_vec2(point)
     }
 
     /// Transform any given point from camera space to world space.
     pub fn to_world_space(&self, point: Vec2) -> Vec2 {
-        point.rotate(self.rotate) / self.zoom + self.translate
+        let point = self.to_world_mat.mul_vec2(point);
+        point + self.translate
     }
 }
 
