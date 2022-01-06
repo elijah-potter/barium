@@ -20,6 +20,22 @@ impl Color {
         Color::new(0.0, 0.0, 0.0, 1.0)
     }
 
+    pub fn red() -> Self{
+        Color::new(1.0, 0.0, 0.0, 1.0)
+    }
+
+    pub fn green() -> Self{
+        Color::new(0.0, 1.0, 0.0, 1.0)
+    }
+
+    pub fn blue() -> Self{
+        Color::new(0.0, 0.0, 1.0, 1.0)
+    }
+
+    pub fn transparent() -> Self{
+        Color::new(0.0, 0.0, 0.0, 0.0)
+    }
+
     pub fn transparent() -> Self {
         Color::new(0.0, 0.0, 0.0, 0.0)
     }
