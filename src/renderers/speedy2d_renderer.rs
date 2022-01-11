@@ -14,14 +14,17 @@ use std::{
     sync::mpsc::{sync_channel, SyncSender},
 };
 
-#[cfg(target_family = "windows")]
+#[cfg(target_os = "windows")]
 use glutin::platform::windows::EventLoopExtWindows;
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
+#[cfg(target_os = "linux")]
 use glutin::platform::unix::EventLoopExtUnix;
 
-#[cfg(not(any(target_family = "windows", any(target_os = "linux", target_os = "macos"))))]
-compile_error!("Only windows and unix are supported when using Speedy2D.");
+#[cfg(target_os = "macos")]
+use glutin::platform::macos::EventLoopExtMacOs;
+
+#[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
+compile_error!("Only windows, macos, and linux are supported when using Speedy2D.");
 
 static SPEEDY2D_CANVAS_CHANNEL: OnceCell<SyncSender<Speedy2dRenderer>> = OnceCell::new();
 
