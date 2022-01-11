@@ -4,7 +4,6 @@ use glutin::{
     dpi::PhysicalSize,
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    platform::windows::EventLoopExtWindows,
     window::WindowBuilder,
     ContextBuilder,
 };
@@ -14,6 +13,15 @@ use std::{
     f32::consts::PI,
     sync::mpsc::{sync_channel, SyncSender},
 };
+
+#[cfg(target_family = "windows")]
+use glutin::platform::windows::EventLoopExtWindows;
+
+#[cfg(target_family = "unix")]
+use glutin::platform::macos::EventLoopExtUnix;
+
+#[cfg(not(any(target_family = "windows", target_family = "unix")))]
+compile_error!("Only windows and unix are supported when using Speedy2D.");
 
 static SPEEDY2D_CANVAS_CHANNEL: OnceCell<SyncSender<Speedy2dRenderer>> = OnceCell::new();
 
