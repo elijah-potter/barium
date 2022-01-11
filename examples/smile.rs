@@ -55,6 +55,7 @@ fn main() {
         None,
     );
 
+    // Save to png
     let png = canvas.render::<SkiaRenderer>(SkiaRendererSettings {
         size: UVec2::splat(1000),
         background: Some(Color::black()),
@@ -63,16 +64,18 @@ fn main() {
     });
     png.save("smile.png").unwrap();
 
-    // let svg = canvas.render::<SvgRenderer>(SvgRendererSettings {
-    //     size: Vec2::splat(1000.0),
-    //     background: Some(Color::black()),
-    //     ints_only: false,
-    //     preserve_height: false,
-    //     circle_vertex_threshold: 32,
-    // });
+    // Save to svg
+    let svg = canvas.render::<SvgRenderer>(SvgRendererSettings {
+        size: Vec2::splat(1000.0),
+        background: Some(Color::black()),
+        ints_only: false,
+        preserve_height: false,
+        circle_vertex_threshold: 32,
+    });
 
-    // std::fs::write("smile.svg", svg).unwrap();
+    std::fs::write("smile.svg", svg).unwrap();
 
+    // Render to window
     let mut black = false;
     loop{
         canvas.render::<Speedy2dRenderer>(Speedy2dRendererSettings{
