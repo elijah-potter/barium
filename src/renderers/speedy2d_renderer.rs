@@ -9,10 +9,7 @@ use glutin::{
     ContextBuilder,
 };
 use once_cell::sync::OnceCell;
-use speedy2d::{
-    dimen::Vector2,
-    shape::{Polygon}, GLRenderer,
-};
+use speedy2d::{dimen::Vector2, shape::Polygon, GLRenderer};
 use std::{
     f32::consts::PI,
     sync::mpsc::{sync_channel, SyncSender},

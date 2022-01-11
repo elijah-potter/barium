@@ -1,6 +1,6 @@
 mod skia_renderer;
-mod svg_renderer;
 mod speedy2d_renderer;
+mod svg_renderer;
 
 #[cfg(feature = "svg_renderer")]
 pub use svg_renderer::{SvgRenderer, SvgRendererSettings};

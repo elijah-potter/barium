@@ -1,9 +1,9 @@
 use glam::{UVec2, Vec2};
 use image::RgbaImage;
-use tiny_skia::{FillRule, Paint, PathBuilder, Pixmap, Transform, LineCap};
+use tiny_skia::{FillRule, LineCap, Paint, PathBuilder, Pixmap, Transform};
 
-use crate::{Color, Renderer, LineEnd};
 use crate::canvas::Shape;
+use crate::{Color, LineEnd, Renderer};
 
 #[derive(Default, Clone, Copy)]
 pub struct SkiaRendererSettings {
@@ -92,7 +92,7 @@ impl Renderer for SkiaRenderer {
                     &paint,
                     &tiny_skia::Stroke {
                         width: stroke.width * self.scale,
-                        line_cap: match stroke.line_end{
+                        line_cap: match stroke.line_end {
                             LineEnd::Butt => LineCap::Butt,
                             LineEnd::Round => LineCap::Round,
                         },

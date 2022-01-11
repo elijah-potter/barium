@@ -20,19 +20,19 @@ impl Color {
         Color::new(0.0, 0.0, 0.0, 1.0)
     }
 
-    pub fn red() -> Self{
+    pub fn red() -> Self {
         Color::new(1.0, 0.0, 0.0, 1.0)
     }
 
-    pub fn green() -> Self{
+    pub fn green() -> Self {
         Color::new(0.0, 1.0, 0.0, 1.0)
     }
 
-    pub fn blue() -> Self{
+    pub fn blue() -> Self {
         Color::new(0.0, 0.0, 1.0, 1.0)
     }
 
-    pub fn transparent() -> Self{
+    pub fn transparent() -> Self {
         Color::new(0.0, 0.0, 0.0, 0.0)
     }
 
@@ -63,8 +63,8 @@ impl Color {
     }
 
     #[inline]
-    /// Gets the average of the RGB values. 
-    pub fn value(&self) -> f32{
+    /// Gets the average of the RGB values.
+    pub fn value(&self) -> f32 {
         (self.r() + self.g() + self.b()) / 3.0
     }
 
@@ -279,28 +279,28 @@ impl From<&Color> for tiny_skia::Color {
 }
 
 #[cfg(feature = "speedy2d_renderer")]
-impl From<Color> for speedy2d::color::Color{
+impl From<Color> for speedy2d::color::Color {
     fn from(color: Color) -> Self {
         speedy2d::color::Color::from_rgba(color.r(), color.g(), color.b(), color.a())
     }
 }
 
 #[cfg(feature = "speedy2d_renderer")]
-impl From<&Color> for speedy2d::color::Color{
+impl From<&Color> for speedy2d::color::Color {
     fn from(color: &Color) -> Self {
         speedy2d::color::Color::from_rgba(color.r(), color.g(), color.b(), color.a())
     }
 }
 
 #[cfg(feature = "speedy2d_renderer")]
-impl From<speedy2d::color::Color> for Color{
+impl From<speedy2d::color::Color> for Color {
     fn from(color: speedy2d::color::Color) -> Self {
         Self::new(color.r(), color.g(), color.b(), color.a())
     }
 }
 
 #[cfg(feature = "speedy2d_renderer")]
-impl From<&speedy2d::color::Color> for Color{
+impl From<&speedy2d::color::Color> for Color {
     fn from(color: &speedy2d::color::Color) -> Self {
         Self::new(color.r(), color.g(), color.b(), color.a())
     }
