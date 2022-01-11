@@ -21,7 +21,7 @@ use glutin::platform::windows::EventLoopExtWindows;
 use glutin::platform::unix::EventLoopExtUnix;
 
 #[cfg(target_os = "macos")]
-use glutin::platform::macos::EventLoopExtMacOs;
+use glutin::platform::macos::EventLoopExtMacOS;
 
 #[cfg(not(any(target_os = "windows", target_os = "linux", target_os = "macos")))]
 compile_error!("Only windows, macos, and linux are supported when using Speedy2D.");
