@@ -17,10 +17,10 @@ use std::{
 #[cfg(target_family = "windows")]
 use glutin::platform::windows::EventLoopExtWindows;
 
-#[cfg(target_family = "unix")]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 use glutin::platform::unix::EventLoopExtUnix;
 
-#[cfg(not(any(target_family = "windows", target_family = "unix")))]
+#[cfg(not(any(target_family = "windows", any(target_os = "linux", target_os = "macos"))))]
 compile_error!("Only windows and unix are supported when using Speedy2D.");
 
 static SPEEDY2D_CANVAS_CHANNEL: OnceCell<SyncSender<Speedy2dRenderer>> = OnceCell::new();
