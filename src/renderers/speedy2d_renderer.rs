@@ -1,4 +1,4 @@
-use crate::{Canvas, Color, LineEnd, Renderer, Shape, Stroke};
+use crate::{Color, LineEnd, Renderer, Shape, Stroke};
 use glam::{Mat2, UVec2, Vec2};
 use glutin::{
     dpi::PhysicalSize,
@@ -11,13 +11,11 @@ use glutin::{
 use once_cell::sync::OnceCell;
 use speedy2d::{
     dimen::Vector2,
-    shape::{Polygon, Rectangle},
-    window::{WindowHandler, WindowHelper},
-    GLRenderer, Graphics2D, Window,
+    shape::{Polygon}, GLRenderer,
 };
 use std::{
     f32::consts::PI,
-    sync::mpsc::{channel, sync_channel, Receiver, Sender, SyncSender},
+    sync::mpsc::{sync_channel, SyncSender},
 };
 
 static SPEEDY2D_CANVAS_CHANNEL: OnceCell<SyncSender<Speedy2dRenderer>> = OnceCell::new();
@@ -132,7 +130,7 @@ impl Renderer for Speedy2dRenderer {
                             let radius = scale * stroke.width / 2.0;
                             let sides = 32;
 
-                            let mut rotation = Mat2::from_cols(
+                            let rotation = Mat2::from_cols(
                                 Vec2::new(-gradient_normalized.y, gradient_normalized.x),
                                 Vec2::new(-gradient_normalized.x, -gradient_normalized.y),
                             );
