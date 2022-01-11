@@ -18,7 +18,7 @@ use std::{
 use glutin::platform::windows::EventLoopExtWindows;
 
 #[cfg(target_family = "unix")]
-use glutin::platform::macos::EventLoopExtUnix;
+use glutin::platform::unix::EventLoopExtUnix;
 
 #[cfg(not(any(target_family = "windows", target_family = "unix")))]
 compile_error!("Only windows and unix are supported when using Speedy2D.");
