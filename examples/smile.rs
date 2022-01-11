@@ -1,7 +1,9 @@
 extern crate denim;
 
+use std::time::Duration;
+
 use denim::{
-    renderers::{SkiaRenderer, SkiaRendererSettings, SvgRenderer, SvgRendererSettings},
+    renderers::{SkiaRenderer, SkiaRendererSettings, SvgRenderer, SvgRendererSettings, Speedy2dRendererSettings, Speedy2dRenderer},
     Canvas, Color, LineEnd, Stroke, UVec2, Vec2,
 };
 
@@ -61,13 +63,25 @@ fn main() {
     });
     png.save("smile.png").unwrap();
 
-    let svg = canvas.render::<SvgRenderer>(SvgRendererSettings {
-        size: Vec2::splat(1000.0),
-        background: Some(Color::black()),
-        ints_only: false,
-        preserve_height: false,
-        circle_vertex_threshold: 32,
-    });
+    // let svg = canvas.render::<SvgRenderer>(SvgRendererSettings {
+    //     size: Vec2::splat(1000.0),
+    //     background: Some(Color::black()),
+    //     ints_only: false,
+    //     preserve_height: false,
+    //     circle_vertex_threshold: 32,
+    // });
 
-    std::fs::write("smile.svg", svg).unwrap();
+    // std::fs::write("smile.svg", svg).unwrap();
+
+    let mut black = false;
+    loop{
+        canvas.render::<Speedy2dRenderer>(Speedy2dRendererSettings{
+            window_size: UVec2::splat(1000),
+            background: if black {Some(Color::black())} else {Some(Color::white())},
+            preserve_height: true,
+            window_title: format!("{:?}", black),
+        });
+        black = !black;
+        std::thread::sleep(Duration::from_secs(2));
+    }
 }

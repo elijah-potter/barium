@@ -278,6 +278,34 @@ impl From<&Color> for tiny_skia::Color {
     }
 }
 
+#[cfg(feature = "speedy2d_renderer")]
+impl From<Color> for speedy2d::color::Color{
+    fn from(color: Color) -> Self {
+        speedy2d::color::Color::from_rgba(color.r(), color.g(), color.b(), color.a())
+    }
+}
+
+#[cfg(feature = "speedy2d_renderer")]
+impl From<&Color> for speedy2d::color::Color{
+    fn from(color: &Color) -> Self {
+        speedy2d::color::Color::from_rgba(color.r(), color.g(), color.b(), color.a())
+    }
+}
+
+#[cfg(feature = "speedy2d_renderer")]
+impl From<speedy2d::color::Color> for Color{
+    fn from(color: speedy2d::color::Color) -> Self {
+        Self::new(color.r(), color.g(), color.b(), color.a())
+    }
+}
+
+#[cfg(feature = "speedy2d_renderer")]
+impl From<&speedy2d::color::Color> for Color{
+    fn from(color: &speedy2d::color::Color) -> Self {
+        Self::new(color.r(), color.g(), color.b(), color.a())
+    }
+}
+
 impl Mul<f32> for Color {
     type Output = Color;
 

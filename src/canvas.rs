@@ -1,10 +1,10 @@
 use std::f32::consts::PI;
 
-use crate::{color::Color};
-use glam::{Vec2, Mat2};
+use crate::color::Color;
+use glam::{Mat2, Vec2};
 
-#[derive(Debug, Clone, PartialEq)]
 /// A polygonal shape with a stroke and fill.
+#[derive(Debug, Clone, PartialEq)]
 pub struct Shape {
     /// Points that make up the shape.
     /// If you want the outline of the shape to be complete, the start and end points must be the same.
@@ -34,7 +34,11 @@ pub struct Stroke {
 
 impl Stroke {
     pub fn new(color: Color, width: f32, line_end: LineEnd) -> Self {
-        Self { color, width, line_end }
+        Self {
+            color,
+            width,
+            line_end,
+        }
     }
 }
 
@@ -46,7 +50,8 @@ pub enum LineEnd {
 
 /// A renderer for [Canvas].
 ///
-/// Anyone who wants to implement a renderer should reference either (SkiaRenderer)[crate::renderers::SkiaRenderer] or (SvgRenderer)[crate::renderers::SvgRenderer].
+/// If you want to implement your own rendering backend,
+/// reference either [SkiaRenderer](crate::renderers::SkiaRenderer) or [SvgRenderer](crate::renderers::SvgRenderer).
 pub trait Renderer {
     /// Configuration for the renderer.
     type Settings;
@@ -55,7 +60,7 @@ pub trait Renderer {
 
     /// Create and setup the renderer.
     fn new(settings: Self::Settings) -> Self;
-    /// Render a shape. All coordinates in the shape will be in Camera Space.
+    /// Render a shape. Provided coordinates will be in Camera Space (from the perspective of the camera).
     fn render(&mut self, shape: &Shape);
     /// Finalize the render.
     fn finalize(self) -> Self::Output;
@@ -148,6 +153,11 @@ impl Canvas {
         self.zoom *= zoom;
     }
 
+    /// Clears the canvas
+    pub fn clear(&mut self) {
+        self.shapes.clear();
+    }
+
     /// Draws a shape onto the canvas, projected from the camera.
     pub fn draw_shape<C: Into<Vec<Vec2>>>(
         &mut self,
@@ -157,7 +167,21 @@ impl Canvas {
     ) {
         let mut points: Vec<Vec2> = points.into();
 
-        for point in points.iter_mut() {
+        if points.is_empty() {
+            return;
+        } else if points.len() == 1 {
+            panic!("A shape must contain more than one point.");
+        }
+
+        let mut iter = points.iter_mut().peekable();
+
+        while let Some(point) = iter.next() {
+            if let Some(peeked) = iter.peek() {
+                if *point == **peeked {
+                    panic!("There cannot be sequential points that are the same.");
+                }
+            }
+
             *point = self.to_world_space(*point);
         }
 
@@ -168,6 +192,12 @@ impl Canvas {
         })
     }
 
+    /// Adds a shape directly onto the canvas, with no transformations.
+    pub fn add_shape(&mut self, shape: Shape) {
+        self.shapes.push(shape);
+    }
+
+    /// Draw a rectangle onto the canvas, projected from the camera.
     pub fn draw_rect(
         &mut self,
         top_left: Vec2,
@@ -188,10 +218,10 @@ impl Canvas {
         )
     }
 
-    /// Draws a regular polygon.
+    /// Draws a regular polygon onto the canvas, projected from the camera.
     ///
     /// Rotation is in radians.
-    /// Sides must be >= 3.
+    /// Will panic if `sides` < 3.
     pub fn draw_regular_polygon(
         &mut self,
         center: Vec2,
@@ -214,9 +244,40 @@ impl Canvas {
             ))
         }
 
+        // Connect first and last points to complete polygon.
         points.push(points[0]);
 
         self.draw_shape(points, stroke, fill)
+    }
+
+    /// Draw a triangle onto the canvas, projected from the camera.
+    pub fn draw_triangle(
+        &mut self,
+        p0: Vec2,
+        p1: Vec2,
+        p2: Vec2,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_shape(vec![p0, p1, p2], stroke, fill);
+    }
+
+    /// Draw a quad onto the canvas, projected from the camera.
+    pub fn draw_quad(
+        &mut self,
+        p0: Vec2,
+        p1: Vec2,
+        p2: Vec2,
+        p3: Vec2,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_shape(vec![p0, p1, p2, p3], stroke, fill);
+    }
+
+    /// Draw a straight line onto the canvas, projected from the camera.
+    pub fn draw_line(&mut self, p0: Vec2, p1: Vec2, stroke: Option<Stroke>, fill: Option<Color>) {
+        self.draw_shape(vec![p0, p1], stroke, fill);
     }
 
     /// Transform any given point from world space to camera space.
@@ -232,6 +293,3 @@ impl Canvas {
         point + self.translate
     }
 }
-
-#[cfg(test)]
-mod tests {}

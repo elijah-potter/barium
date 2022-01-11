@@ -2,7 +2,8 @@ use glam::{UVec2, Vec2};
 use image::RgbaImage;
 use tiny_skia::{FillRule, Paint, PathBuilder, Pixmap, Transform, LineCap};
 
-use crate::{Color, Renderer, Shape, LineEnd};
+use crate::{Color, Renderer, LineEnd};
+use crate::canvas::Shape;
 
 #[derive(Default, Clone, Copy)]
 pub struct SkiaRendererSettings {
