@@ -3,6 +3,7 @@ use glam::Vec2;
 use crate::{Color, LineEnd, Renderer, Shape};
 use std::fmt::Write;
 
+/// Settings to configure [SvgRenderer]
 #[derive(Default, Clone, Copy)]
 pub struct SvgRendererSettings {
     /// Size of the SVG. Shapes outside this boundry will still be included.
@@ -14,10 +15,14 @@ pub struct SvgRendererSettings {
     pub ints_only: bool,
     /// Will make sure to include everything vertically when mapping from Camera Space to the image. Otherwise will do so horizontally.
     pub preserve_height: bool,
-    /// The number of vertices a shape must have to qualify for circle estimation checking.
+    /// The number of vertices a shape must have to qualify as a circle. 
     pub circle_vertex_threshold: usize,
 }
 
+/// A renderer for Scalable Vector Graphics.
+/// 
+/// Unless a shape approximates a circle, it will be drawn as either a polygon or a polyline. 
+/// If it does approximate a circle and meets [circle_vertex_threshold](SvgRendererSettings), it will be drawn as a circle.
 pub struct SvgRenderer {
     scale: f32,
     center_offset: Vec2,

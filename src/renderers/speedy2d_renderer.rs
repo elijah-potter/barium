@@ -25,6 +25,7 @@ compile_error!("Only windows and linux are supported when using Speedy2D.");
 
 static SPEEDY2D_CANVAS_CHANNEL: OnceCell<SyncSender<Speedy2dRenderer>> = OnceCell::new();
 
+/// Settings to configure [Speedy2dRenderer]
 #[derive(Default, Clone)]
 pub struct Speedy2dRendererSettings {
     /// Size of the output window. This will only matter the first time this renderer is used.
@@ -37,6 +38,12 @@ pub struct Speedy2dRendererSettings {
     pub window_title: String,
 }
 
+/// A renderer that uses [Speedy2D](https://github.com/QuantumBadger/Speedy2D).
+/// 
+/// A single window will open. If a Speedy2D window is already open, it will render to that window.
+/// This renderer currently only works on Windows and Linux, but more platforms are planned.
+/// 
+/// All rendering currently happens on a seperate thread.
 #[derive(Default, Clone)]
 pub struct Speedy2dRenderer {
     polygons: Vec<(Polygon, speedy2d::color::Color)>,

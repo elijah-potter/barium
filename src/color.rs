@@ -6,83 +6,108 @@ use std::{
 use glam::Vec4;
 use image::{Rgb, Rgba};
 
+/// A structure that represents an RGBA color. All values are [f32] from 0.0..=1.0.
 #[derive(Default, Clone, Copy, Debug, PartialEq)]
 pub struct Color {
     inner: Vec4,
 }
 
 impl Color {
+    /// The color white.
+    #[inline]
     pub fn white() -> Self {
         Color::new(1.0, 1.0, 1.0, 1.0)
     }
 
+    /// The color black.
+    #[inline]
     pub fn black() -> Self {
         Color::new(0.0, 0.0, 0.0, 1.0)
     }
 
+    /// The color red.
+    #[inline]
     pub fn red() -> Self {
         Color::new(1.0, 0.0, 0.0, 1.0)
     }
 
+    /// The color green.
+    #[inline]
     pub fn green() -> Self {
         Color::new(0.0, 1.0, 0.0, 1.0)
     }
 
+    /// The color blue.
+    #[inline]
     pub fn blue() -> Self {
         Color::new(0.0, 0.0, 1.0, 1.0)
     }
 
+    /// The color black, but with `alpha` set to `0`.
+    #[inline]
     pub fn transparent() -> Self {
         Color::new(0.0, 0.0, 0.0, 0.0)
     }
 
+    /// Create a new [Color] from `RGBA` values
+    #[inline]
     pub fn new(r: f32, g: f32, b: f32, a: f32) -> Self {
         Self {
             inner: Vec4::new(r, g, b, a),
         }
     }
 
+    /// Get the red channel.
     #[inline]
     pub fn r(&self) -> f32 {
         self.inner.x
     }
 
+    /// Get the green channel.
     #[inline]
     pub fn g(&self) -> f32 {
         self.inner.y
     }
 
+    /// Get the blue channel.
     #[inline]
     pub fn b(&self) -> f32 {
         self.inner.z
     }
 
+    /// Get the alpha channel.
     #[inline]
     pub fn a(&self) -> f32 {
         self.inner.w
     }
 
-    #[inline]
     /// Gets the average of the RGB values.
+    ///
+    /// This does not include the `alpha` value.
+    #[inline]
     pub fn value(&self) -> f32 {
         (self.r() + self.g() + self.b()) / 3.0
     }
 
+    /// Get a mutable referance to the red channel.
     #[inline]
     pub fn r_mut(&mut self) -> &mut f32 {
         &mut self.inner.x
     }
 
+    /// Get a mutable referance to the green channel.
     #[inline]
     pub fn g_mut(&mut self) -> &mut f32 {
         &mut self.inner.y
     }
 
+    /// Get a mutable referance to the blue channel.
     #[inline]
     pub fn b_mut(&mut self) -> &mut f32 {
         &mut self.inner.z
     }
 
+    /// Get a mutable referance to the alpha channel.
     #[inline]
     pub fn a_mut(&mut self) -> &mut f32 {
         &mut self.inner.w

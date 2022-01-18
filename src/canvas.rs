@@ -16,6 +16,7 @@ pub struct Shape {
 }
 
 impl Shape {
+    /// Checks if a shape is a polygon, otherwise it is a polyline.
     pub fn is_polygon(&self) -> bool {
         if self.points.len() < 3 {
             false
@@ -25,14 +26,20 @@ impl Shape {
     }
 }
 
+/// A structure that describes a line stroke.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Stroke {
+    /// Color of the stroke
     pub color: Color,
+    /// Width of the stroke
     pub width: f32,
+    /// How each end of the line terminates (a.k.a line cap).
     pub line_end: LineEnd,
 }
 
 impl Stroke {
+    /// Create a new [Stroke]
+    #[inline]
     pub fn new(color: Color, width: f32, line_end: LineEnd) -> Self {
         Self {
             color,
@@ -42,9 +49,12 @@ impl Stroke {
     }
 }
 
+/// How to end [stroked](Stroke) line.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum LineEnd {
+    /// Line continues past the final point and ends with a square.
     Butt,
+    /// Line continues past the final point and ends with a circle.
     Round,
 }
 
@@ -57,7 +67,6 @@ pub trait Renderer {
     type Settings;
     /// The intended format the renderer will output.
     type Output;
-
     /// Create and setup the renderer.
     fn new(settings: Self::Settings) -> Self;
     /// Render a shape. Provided coordinates will be in Camera Space (from the perspective of the camera).
@@ -66,7 +75,6 @@ pub trait Renderer {
     fn finalize(self) -> Self::Output;
 }
 
-#[derive(Debug, Clone)]
 /// A canvas that can be used with many backends.
 ///
 /// There are two 'spaces': `World Space` and `View Space`.
@@ -76,6 +84,7 @@ pub trait Renderer {
 /// This means that, by default, `View Space` and `World Space` are equal. Once the camera has been changed, any drawing will be from the perspective of `View Space` onto `World Space`.
 ///
 /// For example, a rectangle with corners at `(-1, -1)` and `(1, 1)` will be twice as large in World Space if it is drawn while the camera's `zoom` is at `0.5`.
+#[derive(Debug, Clone)]
 pub struct Canvas {
     zoom: f32,
     translate: Vec2,
@@ -85,6 +94,7 @@ pub struct Canvas {
 }
 
 impl Default for Canvas {
+    #[inline]
     fn default() -> Self {
         Self {
             zoom: 1.0,
@@ -97,6 +107,8 @@ impl Default for Canvas {
 }
 
 impl Canvas {
+    /// Create a new [Canvas].
+    #[inline]
     pub fn new() -> Self {
         Self::default()
     }
@@ -122,14 +134,17 @@ impl Canvas {
         renderer.finalize()
     }
 
+    /// Returns a [Vec] of all the [Shapes](Shape) drawn on the canvas.
     pub fn to_raw(self) -> Vec<Shape> {
         self.shapes
     }
 
+    /// Returns a slice of all the [Shapes](Shape) drawn on the canvas.
     pub fn as_raw(&self) -> &[Shape] {
         self.shapes.as_slice()
     }
 
+    /// Returns a mutable slice of all the [Shapes](Shape) drawn on the canvas.
     pub fn as_raw_mut(&mut self) -> &mut [Shape] {
         self.shapes.as_mut_slice()
     }

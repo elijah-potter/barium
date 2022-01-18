@@ -5,6 +5,7 @@ use tiny_skia::{FillRule, LineCap, Paint, PathBuilder, Pixmap, Transform};
 use crate::canvas::Shape;
 use crate::{Color, LineEnd, Renderer};
 
+/// Settings to configure [SkiaRenderer]
 #[derive(Default, Clone, Copy)]
 pub struct SkiaRendererSettings {
     /// Size of the output image.
@@ -17,6 +18,8 @@ pub struct SkiaRendererSettings {
     pub preserve_height: bool,
 }
 
+/// Renderer that uses the [tiny_skia](https://github.com/RazrFalcon/tiny-skia) crate.
+/// This is NOT actual Skia, but a Rust port.
 pub struct SkiaRenderer {
     antialias: bool,
     scale: f32,
