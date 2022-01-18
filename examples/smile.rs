@@ -1,12 +1,7 @@
 extern crate denim;
 
-use std::time::Duration;
-
 use denim::{
-    renderers::{
-        SkiaRenderer, SkiaRendererSettings,
-        SvgRenderer, SvgRendererSettings,
-    },
+    renderers::{SkiaRenderer, SkiaRendererSettings, SvgRenderer, SvgRendererSettings},
     Canvas, Color, LineEnd, Stroke, UVec2, Vec2,
 };
 

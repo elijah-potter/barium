@@ -39,10 +39,10 @@ pub struct Speedy2dRendererSettings {
 }
 
 /// A renderer that uses [Speedy2D](https://github.com/QuantumBadger/Speedy2D).
-/// 
+///
 /// A single window will open. If a Speedy2D window is already open, it will render to that window.
 /// This renderer currently only works on Windows and Linux, but more platforms are planned.
-/// 
+///
 /// All rendering currently happens on a seperate thread.
 #[derive(Default, Clone)]
 pub struct Speedy2dRenderer {
