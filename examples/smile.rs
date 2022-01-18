@@ -4,7 +4,7 @@ use std::time::Duration;
 
 use denim::{
     renderers::{
-        SkiaRenderer, SkiaRendererSettings, Speedy2dRenderer, Speedy2dRendererSettings,
+        SkiaRenderer, SkiaRendererSettings,
         SvgRenderer, SvgRendererSettings,
     },
     Canvas, Color, LineEnd, Stroke, UVec2, Vec2,
@@ -77,21 +77,4 @@ fn main() {
     });
 
     std::fs::write("smile.svg", svg).unwrap();
-
-    // Render to window
-    let mut black = false;
-    loop {
-        canvas.render::<Speedy2dRenderer>(Speedy2dRendererSettings {
-            window_size: UVec2::splat(1000),
-            background: if black {
-                Some(Color::black())
-            } else {
-                Some(Color::white())
-            },
-            preserve_height: true,
-            window_title: format!("{:?}", black),
-        });
-        black = !black;
-        std::thread::sleep(Duration::from_secs(2));
-    }
 }
