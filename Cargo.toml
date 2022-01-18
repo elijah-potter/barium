@@ -32,7 +32,7 @@ features = [
 ]
 
 [features]
-default = ["tiny_skia_renderer", "svg_renderer", "speedy2d_renderer"]
+default = ["tiny_skia_renderer", "svg_renderer"]
 tiny_skia_renderer = ["image", "tiny-skia"]
 svg_renderer = []
 speedy2d_renderer = ["speedy2d", "once_cell", "glutin"]
