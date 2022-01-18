@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use crate::color::Color;
-use glam::{Mat2, Vec2};
+use glam::{Mat2, Vec2, Affine2};
 
 /// A polygonal shape with a stroke and fill.
 #[derive(Debug, Clone, PartialEq)]
@@ -87,9 +87,8 @@ pub trait Renderer {
 #[derive(Debug, Clone)]
 pub struct Canvas {
     zoom: f32,
-    translate: Vec2,
-    to_camera_mat: Mat2,
-    to_world_mat: Mat2,
+    to_camera_affine: Affine2,
+    to_world_affine: Affine2,
     shapes: Vec<Shape>,
 }
 
@@ -98,9 +97,8 @@ impl Default for Canvas {
     fn default() -> Self {
         Self {
             zoom: 1.0,
-            translate: Vec2::ZERO,
-            to_camera_mat: Mat2::IDENTITY,
-            to_world_mat: Mat2::IDENTITY,
+            to_camera_affine: Affine2::IDENTITY,
+            to_world_affine: Affine2::IDENTITY,
             shapes: Vec::new(),
         }
     }
@@ -152,19 +150,20 @@ impl Canvas {
     /// Rotate the camera.
     pub fn rotate_camera(&mut self, radians: f32) {
         let rotate_mat = Mat2::from_angle(radians);
-        self.to_camera_mat = rotate_mat.mul_mat2(&self.to_camera_mat);
-        self.to_world_mat = self.to_camera_mat.inverse();
+        self.to_camera_affine.matrix2 = rotate_mat.mul_mat2(&self.to_camera_affine.matrix2);
+        self.to_world_affine = self.to_camera_affine.inverse();
     }
 
     /// Moves the camera by a certain amount. This is not effected by zoom.
     pub fn move_camera(&mut self, translation: Vec2) {
-        self.translate += translation;
+        self.to_camera_affine.translation -= translation;
+        self.to_world_affine = self.to_camera_affine.inverse();
     }
 
     /// Zoom camera
     pub fn zoom_camera(&mut self, zoom: f32) {
-        self.to_camera_mat *= zoom;
-        self.to_world_mat = self.to_camera_mat.inverse();
+        self.to_camera_affine.matrix2 *= zoom;
+        self.to_world_affine = self.to_camera_affine.inverse();
         self.zoom *= zoom;
     }
 
@@ -298,13 +297,11 @@ impl Canvas {
     /// Transform any given point from world space to camera space.
     /// Allows to scale to a given resolution width.
     pub fn to_camera_space(&self, point: Vec2) -> Vec2 {
-        let point = point - self.translate;
-        self.to_camera_mat.mul_vec2(point)
+        self.to_camera_affine.transform_point2(point)
     }
 
     /// Transform any given point from camera space to world space.
     pub fn to_world_space(&self, point: Vec2) -> Vec2 {
-        let point = self.to_world_mat.mul_vec2(point);
-        point + self.translate
+        self.to_world_affine.transform_point2(point)
     }
 }
