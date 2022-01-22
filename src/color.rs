@@ -113,6 +113,34 @@ impl Color {
         &mut self.inner.w
     }
 
+    /// Modify the red channel, consuming the parent.
+    #[inline]
+    pub fn with_r(mut self, r: f32) -> Self {
+        *self.r_mut() = r;
+        self
+    }
+
+    /// Modify the green channel, consuming the parent.
+    #[inline]
+    pub fn with_g(mut self, g: f32) -> Self{
+        *self.g_mut() = g;
+        self
+    }
+
+    /// Modify the blue channel, consuming the parent.
+    #[inline]
+    pub fn with_b(mut self, b: f32) -> Self {
+        *self.b_mut() = b;
+        self
+    }
+
+    /// Modify the alpha channel, consuming the parent.
+    #[inline]
+    pub fn with_a(mut self, a: f32) -> Self{
+        *self.a_mut() = a;
+        self
+    }
+
     /// Creates a [Color] from HSV values.
     ///
     /// Note: all inputs must be of range 0..1.
@@ -300,34 +328,6 @@ impl From<&Color> for tiny_skia::Color {
             color.a().clamp(0.0, 1.0),
         )
         .unwrap()
-    }
-}
-
-#[cfg(feature = "speedy2d_renderer")]
-impl From<Color> for speedy2d::color::Color {
-    fn from(color: Color) -> Self {
-        speedy2d::color::Color::from_rgba(color.r(), color.g(), color.b(), color.a())
-    }
-}
-
-#[cfg(feature = "speedy2d_renderer")]
-impl From<&Color> for speedy2d::color::Color {
-    fn from(color: &Color) -> Self {
-        speedy2d::color::Color::from_rgba(color.r(), color.g(), color.b(), color.a())
-    }
-}
-
-#[cfg(feature = "speedy2d_renderer")]
-impl From<speedy2d::color::Color> for Color {
-    fn from(color: speedy2d::color::Color) -> Self {
-        Self::new(color.r(), color.g(), color.b(), color.a())
-    }
-}
-
-#[cfg(feature = "speedy2d_renderer")]
-impl From<&speedy2d::color::Color> for Color {
-    fn from(color: &speedy2d::color::Color) -> Self {
-        Self::new(color.r(), color.g(), color.b(), color.a())
     }
 }
 
