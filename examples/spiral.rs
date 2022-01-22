@@ -17,7 +17,7 @@ fn main() {
         ))
     }
 
-    // Draw the spiral multiple times, the camera before each one.
+    // Draw the spiral multiple times, moving the camera, before each one and adjusting the brightness.
     for i in 0..8 {
         canvas.draw_shape(
             points.clone(),
