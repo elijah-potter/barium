@@ -6,9 +6,7 @@ edition = "2021"
 [dependencies]
 glam = "0.20.1"
 tiny-skia = { version = "0.6.1", optional = true }
-speedy2d = { git = "https://github.com/chilipepperhott/speedy2d", branch = "triangulation", optional = true }
-once_cell = {version = "1.9.0", optional = true }
-glutin = {version = "0.28.0", optional = true}
+retain_mut = "0.1.5"
 
 # We remove rayon for portability.
 [dependencies.image]
@@ -35,4 +33,3 @@ features = [
 default = ["tiny_skia_renderer", "svg_renderer"]
 tiny_skia_renderer = ["image", "tiny-skia"]
 svg_renderer = []
-speedy2d_renderer = ["speedy2d", "once_cell", "glutin"]
