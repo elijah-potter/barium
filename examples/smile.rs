@@ -7,50 +7,46 @@ use denim::{
 
 fn main() {
     // Create a canvas, centered on (0, 0). The camera ranges from (-1.0, -1.0) to (1.0, 1.0).
-    let mut canvas = Canvas::new();
+    let mut canvas = Canvas::new(1000);
 
-    let background_color = Color::from_hex("#2E3440").unwrap();
-
-    // Draw square
-    canvas.draw_rect(
-        Vec2::ONE * -0.9,
-        Vec2::ONE * 0.9,
+    // Draw face
+    canvas.draw_circle(
+        Vec2::ZERO,
+        1.0,
         None,
-        Some(Color::from_hex("#D08770").unwrap()),
+        Some(Color::from_hex("#fecb00").unwrap()),
     );
 
     // Draw eyes
-    canvas.draw_regular_polygon(
-        Vec2::new(-0.5, 0.5),
-        32,
-        0.1,
-        0.0,
-        None,
-        Some(background_color),
-    );
-
-    canvas.draw_regular_polygon(
-        Vec2::new(0.5, 0.5),
-        32,
-        0.1,
-        0.0,
-        None,
-        Some(background_color),
-    );
-
-    // Draw mouth with a custom shape
-    canvas.draw_shape(
-        vec![
-            Vec2::new(0.8, 0.0),
-            Vec2::new(0.0, -0.8),
-            Vec2::new(-0.8, 0.0),
-        ],
+    canvas.draw_line(
+        Vec2::new(-0.5, 0.25),
+        Vec2::new(-0.5, 0.0),
         Some(Stroke {
-            color: background_color,
-            width: 0.1,
-            line_end: LineEnd::Butt,
+            color: Color::black(),
+            width: 0.2,
+            line_end: LineEnd::Round,
         }),
         None,
+    );
+
+    canvas.draw_line(
+        Vec2::new(0.5, 0.25),
+        Vec2::new(0.5, 0.0),
+        Some(Stroke {
+            color: Color::black(),
+            width: 0.2,
+            line_end: LineEnd::Round,
+        }),
+        None,
+    );
+
+    // Draw mouth
+    canvas.draw_quadratic_bezier(
+        Vec2::new(-0.5, -0.3),
+        Vec2::Y * -0.5,
+        Vec2::new(0.5, -0.3),
+        None,
+        Some(Color::black()),
     );
 
     // Save to png

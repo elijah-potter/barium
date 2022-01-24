@@ -1,7 +1,9 @@
 use std::f32::consts::PI;
 
 use crate::color::Color;
-use glam::{Mat2, Vec2, Affine2};
+use glam::{Affine2, Mat2, Vec2};
+
+use retain_mut::RetainMut;
 
 /// A polygonal shape with a stroke and fill.
 #[derive(Debug, Clone, PartialEq)]
@@ -86,6 +88,8 @@ pub trait Renderer {
 /// For example, a rectangle with corners at `(-1, -1)` and `(1, 1)` will be twice as large in World Space if it is drawn while the camera's `zoom` is at `0.5`.
 #[derive(Debug, Clone)]
 pub struct Canvas {
+    /// Defines the resolution at which certain helper functions generate points, (circles, bezier curves).
+    pub points_per_unit: usize,
     zoom: f32,
     to_camera_affine: Affine2,
     to_world_affine: Affine2,
@@ -96,6 +100,7 @@ impl Default for Canvas {
     #[inline]
     fn default() -> Self {
         Self {
+            points_per_unit: 1000,
             zoom: 1.0,
             to_camera_affine: Affine2::IDENTITY,
             to_world_affine: Affine2::IDENTITY,
@@ -106,9 +111,16 @@ impl Default for Canvas {
 
 impl Canvas {
     /// Create a new [Canvas].
+    /// [points_per_unit](Self::points_per_unit) defines the resolution at which certain helper functions generate points, (circles, bezier curves).
     #[inline]
-    pub fn new() -> Self {
-        Self::default()
+    pub fn new(points_per_unit: usize) -> Self {
+        Self {
+            points_per_unit,
+            zoom: 1.0,
+            to_camera_affine: Affine2::IDENTITY,
+            to_world_affine: Affine2::IDENTITY,
+            shapes: Vec::new(),
+        }
     }
 
     /// Render the canvas using a renderer of your choice.
@@ -172,7 +184,9 @@ impl Canvas {
         self.shapes.clear();
     }
 
-    /// Draws a shape onto the canvas, projected from the camera.
+    /// Draw a shape onto the canvas, projected from the camera.
+    ///
+    /// If a shape as one or fewer points, it will be discarded.
     pub fn draw_shape<C: Into<Vec<Vec2>>>(
         &mut self,
         points: C,
@@ -181,23 +195,22 @@ impl Canvas {
     ) {
         let mut points: Vec<Vec2> = points.into();
 
-        if points.is_empty() {
+        if points.len() <= 1 {
             return;
-        } else if points.len() == 1 {
-            panic!("A shape must contain more than one point.");
         }
 
-        let mut iter = points.iter_mut().peekable();
+        let mut last_point = Vec2::ZERO * f32::INFINITY;
+        RetainMut::retain_mut(&mut points, |point| {
+            let r = last_point != *point;
+            last_point = *point;
+            *point = self.to_world_space(last_point);
+            r
+        });
 
-        while let Some(point) = iter.next() {
-            if let Some(peeked) = iter.peek() {
-                if *point == **peeked {
-                    panic!("There cannot be sequential points that are the same.");
-                }
-            }
-
-            *point = self.to_world_space(*point);
-        }
+        stroke.map(|mut v| {
+            v.width /= self.zoom;
+            v
+        });
 
         self.shapes.push(Shape {
             points,
@@ -206,9 +219,33 @@ impl Canvas {
         })
     }
 
-    /// Adds a shape directly onto the canvas, with no transformations.
-    pub fn add_shape(&mut self, shape: Shape) {
-        self.shapes.push(shape);
+    /// Draw a shape directly onto the canvas.
+    ///
+    /// If a shape as one or fewer points, it will be discarded.
+    pub fn draw_shape_absolute<C: Into<Vec<Vec2>>>(
+        &mut self,
+        points: C,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        let mut points: Vec<Vec2> = points.into();
+
+        if points.len() <= 1 {
+            return;
+        }
+
+        let mut last_point = Vec2::ZERO * f32::INFINITY;
+        points.retain(|point| {
+            let r = last_point != *point;
+            last_point = *point;
+            r
+        });
+
+        self.shapes.push(Shape {
+            points,
+            stroke,
+            fill,
+        })
     }
 
     /// Draw a rectangle onto the canvas, projected from the camera.
@@ -220,6 +257,27 @@ impl Canvas {
         fill: Option<Color>,
     ) {
         self.draw_shape(
+            vec![
+                top_left,
+                Vec2::new(bottom_right.x, top_left.y),
+                bottom_right,
+                Vec2::new(top_left.x, bottom_right.y),
+                top_left,
+            ],
+            stroke,
+            fill,
+        )
+    }
+
+    /// Draw a rectangle directly onto the canvas.
+    pub fn draw_rect_absolute(
+        &mut self,
+        top_left: Vec2,
+        bottom_right: Vec2,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_shape_absolute(
             vec![
                 top_left,
                 Vec2::new(bottom_right.x, top_left.y),
@@ -264,6 +322,72 @@ impl Canvas {
         self.draw_shape(points, stroke, fill)
     }
 
+    /// Draws a regular polygon directly onto the canvas.
+    ///
+    /// Rotation is in radians.
+    /// Will panic if `sides` < 3.
+    pub fn draw_regular_polygon_absolute(
+        &mut self,
+        center: Vec2,
+        sides: usize,
+        radius: f32,
+        rotation: f32,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        if sides < 3 {
+            panic!("There must be at least 3 sides in a regular polygon.")
+        }
+
+        let mut points = Vec::with_capacity(sides + 1);
+
+        for n in 0..sides {
+            points.push(Vec2::new(
+                radius * (2.0 * PI * n as f32 / sides as f32 + rotation).cos() + center.x,
+                radius * (2.0 * PI * n as f32 / sides as f32 + rotation).sin() + center.y,
+            ))
+        }
+
+        // Connect first and last points to complete polygon.
+        points.push(points[0]);
+
+        self.draw_shape_absolute(points, stroke, fill)
+    }
+
+    /// Draws a circle onto the canvas, projected from the camera.
+    /// This is a wrapper over [draw_regular_polygon](Self::draw_regular_polygon).
+    /// If you want high-quality circles, use that function directly or adjust [points_per_unit](Self::points_per_unit) to fit your needs.
+    pub fn draw_circle(
+        &mut self,
+        center: Vec2,
+        radius: f32,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        let circumference = 2.0 * PI * radius;
+        let sides = (circumference * self.points_per_unit as f32) as usize;
+        if sides > 2 {
+            self.draw_regular_polygon(center, sides, radius, 0.0, stroke, fill);
+        }
+    }
+
+    /// Draws a circle directly onto the canvas.
+    /// This is a wrapper over [draw_regular_polygon_absolute](Self::draw_regular_polygon_absolute).
+    /// If you want high-quality circles, use that function directly or adjust [points_per_unit](Self::points_per_unit) to fit your needs.
+    pub fn draw_circle_absolute(
+        &mut self,
+        center: Vec2,
+        radius: f32,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        let circumference = 2.0 * PI * radius;
+        let sides = (circumference * self.points_per_unit as f32) as usize;
+        if sides > 2 {
+            self.draw_regular_polygon(center, sides, radius, 0.0, stroke, fill);
+        }
+    }
+
     /// Draw a triangle onto the canvas, projected from the camera.
     pub fn draw_triangle(
         &mut self,
@@ -274,6 +398,18 @@ impl Canvas {
         fill: Option<Color>,
     ) {
         self.draw_shape(vec![p0, p1, p2], stroke, fill);
+    }
+
+    /// Draw a triangle directly onto the canvas.
+    pub fn draw_triangle_absolute(
+        &mut self,
+        p0: Vec2,
+        p1: Vec2,
+        p2: Vec2,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_shape_absolute(vec![p0, p1, p2], stroke, fill);
     }
 
     /// Draw a quad onto the canvas, projected from the camera.
@@ -289,9 +425,170 @@ impl Canvas {
         self.draw_shape(vec![p0, p1, p2, p3], stroke, fill);
     }
 
+    /// Draw a quad directly onto the canvas.
+    pub fn draw_quad_absolute(
+        &mut self,
+        p0: Vec2,
+        p1: Vec2,
+        p2: Vec2,
+        p3: Vec2,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_shape_absolute(vec![p0, p1, p2, p3], stroke, fill);
+    }
+
+    /// Draw a quadratic bezier curve onto the canvas, projected from the camera.
+    pub fn draw_quadratic_bezier(
+        &mut self,
+        start: Vec2,
+        middle: Vec2,
+        end: Vec2,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        let curve_length = start.distance(middle) + middle.distance(end);
+        let point_count = curve_length * self.points_per_unit as f32;
+
+        let mut points = Vec::with_capacity(point_count as usize);
+
+        for i in 0..point_count as usize {
+            points.push(Self::quadratic(start, middle, end, i as f32 / point_count));
+        }
+
+        self.draw_shape(points, stroke, fill);
+    }
+
+    /// Draw a quadratic bezier curve directly onto the canvas.
+    pub fn draw_quadratic_bezier_absolute(
+        &mut self,
+        start: Vec2,
+        middle: Vec2,
+        end: Vec2,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        let curve_length = start.distance(middle) + middle.distance(end);
+        let point_count = curve_length * self.points_per_unit as f32;
+
+        let mut points = Vec::with_capacity(point_count as usize);
+
+        for i in 0..point_count as usize {
+            points.push(Self::quadratic(start, middle, end, i as f32 / point_count));
+        }
+
+        self.draw_shape_absolute(points, stroke, fill);
+    }
+
+    /// Draw a quartic bezier curve onto the canvas, projected from the camera.
+    pub fn draw_quartic_bezier(
+        &mut self,
+        start: Vec2,
+        second: Vec2,
+        third: Vec2,
+        end: Vec2,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        let curve_length = start.distance(second) + second.distance(third) + third.distance(end);
+        let point_count = curve_length * self.points_per_unit as f32;
+
+        let mut points = Vec::with_capacity(point_count as usize);
+
+        for i in 0..point_count as usize {
+            points.push(Self::quartic(
+                start,
+                second,
+                third,
+                end,
+                i as f32 / point_count,
+            ));
+        }
+
+        self.draw_shape(points, stroke, fill);
+    }
+
+    /// Draw a quartic bezier curve directly onto the canvas.
+    pub fn draw_quartic_bezier_absolute(
+        &mut self,
+        start: Vec2,
+        second: Vec2,
+        third: Vec2,
+        end: Vec2,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        let curve_length = start.distance(second) + second.distance(third) + third.distance(end);
+        let point_count = curve_length * self.points_per_unit as f32;
+
+        let mut points = Vec::with_capacity(point_count as usize);
+
+        for i in 0..point_count as usize {
+            points.push(Self::quartic(
+                start,
+                second,
+                third,
+                end,
+                i as f32 / point_count,
+            ));
+        }
+
+        self.draw_shape_absolute(points, stroke, fill);
+    }
+
+    fn point_on_line(a: Vec2, b: Vec2, t: f32) -> Vec2 {
+        a - ((a - b) * t)
+    }
+
+    fn quadratic(start: Vec2, middle: Vec2, end: Vec2, t: f32) -> Vec2 {
+        let a = Self::point_on_line(start, middle, t);
+        let b = Self::point_on_line(middle, end, t);
+        Self::point_on_line(a, b, t)
+    }
+
+    fn quartic(start: Vec2, second: Vec2, third: Vec2, end: Vec2, t: f32) -> Vec2 {
+        let a = Self::point_on_line(start, second, t);
+        let b = Self::point_on_line(second, third, t);
+        let c = Self::point_on_line(third, end, t);
+        let d = Self::point_on_line(a, b, t);
+        let e = Self::point_on_line(b, c, t);
+        Self::point_on_line(d, e, t)
+    }
+
     /// Draw a straight line onto the canvas, projected from the camera.
     pub fn draw_line(&mut self, p0: Vec2, p1: Vec2, stroke: Option<Stroke>, fill: Option<Color>) {
         self.draw_shape(vec![p0, p1], stroke, fill);
+    }
+
+    /// Draw a line made of several segments onto the canvas, projected from the camera.
+    pub fn draw_polyline<C: Into<Vec<Vec2>>>(&mut self, points: C, stroke: Stroke) {
+        self.draw_shape(points, Some(stroke), None);
+    }
+
+    /// Draw a solid shape made of several sides onto the canvas, projected from the camera.
+    pub fn draw_polygon<C: Into<Vec<Vec2>>>(&mut self, points: C, fill: Color) {
+        self.draw_shape(points, None, Some(fill));
+    }
+
+    /// Draw a straight line directly onto the canvas.
+    pub fn draw_line_absolute(
+        &mut self,
+        p0: Vec2,
+        p1: Vec2,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_shape_absolute(vec![p0, p1], stroke, fill);
+    }
+
+    /// Draw a line made of several segments directly onto the canvas.
+    pub fn draw_polyline_absolute<C: Into<Vec<Vec2>>>(&mut self, points: C, stroke: Stroke) {
+        self.draw_shape_absolute(points, Some(stroke), None);
+    }
+
+    /// Draw a solid shape made of several sides directly onto the canvas.
+    pub fn draw_polygon_absolute<C: Into<Vec<Vec2>>>(&mut self, points: C, fill: Color) {
+        self.draw_shape_absolute(points, None, Some(fill));
     }
 
     /// Transform any given point from world space to camera space.
