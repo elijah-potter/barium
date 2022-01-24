@@ -5,21 +5,9 @@ use tiny_skia::{FillRule, LineCap, Paint, PathBuilder, Pixmap, Transform};
 use crate::canvas::Shape;
 use crate::{Color, LineEnd, Renderer};
 
-/// Settings to configure [SkiaRenderer]
-#[derive(Default, Clone, Copy)]
-pub struct SkiaRendererSettings {
-    /// Size of the output image.
-    pub size: UVec2,
-    /// An optional background color.
-    pub background: Option<Color>,
-    /// Use antialiasing
-    pub antialias: bool,
-    /// Will make sure to include everything vertically when mapping from Camera Space to the image. Otherwise will do so horizontally.
-    pub preserve_height: bool,
-}
-
 /// Renderer that uses the [tiny_skia](https://github.com/RazrFalcon/tiny-skia) crate.
 /// This is NOT actual Skia, but a Rust port.
+#[derive(Clone)]
 pub struct SkiaRenderer {
     antialias: bool,
     scale: f32,
@@ -27,33 +15,38 @@ pub struct SkiaRenderer {
     canvas: Pixmap,
 }
 
-impl Renderer for SkiaRenderer {
-    type Settings = SkiaRendererSettings;
+impl SkiaRenderer{
+    /// Create a new [SkiaRenderer].
+    /// 
+    /// `preserve_height` allows you to decide which axis to preserve.
+    /// If `true`, then the rendered image will map `-1..=1` in the y axis in camera space to `size.y..=0`.
+    /// If `false` then the rendered image will be mapped for the x axis.
+    pub fn new(size: UVec2, background: Option<Color>, antialias: bool, preserve_height: bool) -> Self {
+        let mut canvas = Pixmap::new(size.x, size.y).unwrap();
 
-    type Output = RgbaImage;
-
-    fn new(settings: Self::Settings) -> Self {
-        let mut canvas = Pixmap::new(settings.size.x, settings.size.y).unwrap();
-
-        if let Some(background) = settings.background {
+        if let Some(background) = background {
             canvas.fill(background.into());
         }
 
-        let (scale, center_offset) = if settings.preserve_height {
-            let scale = settings.size.y as f32 / 2.0;
-            (scale, Vec2::new(settings.size.x as f32 / 2.0 / scale, 1.0))
+        let (scale, center_offset) = if preserve_height {
+            let scale = size.y as f32 / 2.0;
+            (scale, Vec2::new(size.x as f32 / 2.0 / scale, 1.0))
         } else {
-            let scale = settings.size.x as f32 / 2.0;
-            (scale, Vec2::new(1.0, settings.size.y as f32 / 2.0 / scale))
+            let scale = size.x as f32 / 2.0;
+            (scale, Vec2::new(1.0, size.y as f32 / 2.0 / scale))
         };
 
         Self {
-            antialias: settings.antialias,
+            antialias,
             scale,
             center_offset,
             canvas,
         }
     }
+}
+
+impl Renderer for SkiaRenderer {
+    type Output = RgbaImage;
 
     fn render(&mut self, shape: &Shape) {
         // Transform from Camera Space (range from (-1, -1) to (1, 1)) to Image Space (range from (0, 0) to image size).

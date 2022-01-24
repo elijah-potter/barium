@@ -65,12 +65,8 @@ pub enum LineEnd {
 /// If you want to implement your own rendering backend,
 /// reference either [SkiaRenderer](crate::renderers::SkiaRenderer) or [SvgRenderer](crate::renderers::SvgRenderer).
 pub trait Renderer {
-    /// Configuration for the renderer.
-    type Settings;
     /// The intended format the renderer will output.
     type Output;
-    /// Create and setup the renderer.
-    fn new(settings: Self::Settings) -> Self;
     /// Render a shape. Provided coordinates will be in Camera Space (from the perspective of the camera).
     fn render(&mut self, shape: &Shape);
     /// Finalize the render.
@@ -124,9 +120,7 @@ impl Canvas {
     }
 
     /// Render the canvas using a renderer of your choice.
-    pub fn render<R: Renderer>(&self, settings: R::Settings) -> R::Output {
-        let mut renderer = R::new(settings);
-
+    pub fn render<R: Renderer>(&self, mut renderer: R) -> R::Output {
         for shape in &self.shapes {
             let mut transformed_shape = shape.clone();
 

@@ -3,26 +3,11 @@ use glam::Vec2;
 use crate::{Color, LineEnd, Renderer, Shape};
 use std::fmt::Write;
 
-/// Settings to configure [SvgRenderer]
-#[derive(Default, Clone, Copy)]
-pub struct SvgRendererSettings {
-    /// Size of the SVG. Shapes outside this boundry will still be included.
-    pub size: Vec2,
-    /// An optional background color.
-    pub background: Option<Color>,
-    /// Whether or not to include floating point numbers.
-    /// This can dramatically reduce file size.
-    pub ints_only: bool,
-    /// Will make sure to include everything vertically when mapping from Camera Space to the image. Otherwise will do so horizontally.
-    pub preserve_height: bool,
-    /// The number of vertices a shape must have to qualify as a circle.
-    pub circle_vertex_threshold: usize,
-}
-
 /// A renderer for Scalable Vector Graphics.
 ///
 /// Unless a shape approximates a circle, it will be drawn as either a polygon or a polyline.
 /// If it does approximate a circle and meets [circle_vertex_threshold](SvgRendererSettings), it will be drawn as a circle.
+#[derive(Clone)]
 pub struct SvgRenderer {
     scale: f32,
     center_offset: Vec2,
@@ -31,50 +16,61 @@ pub struct SvgRenderer {
     document: String,
 }
 
-impl Renderer for SvgRenderer {
-    type Settings = SvgRendererSettings;
-
-    type Output = String;
-
-    fn new(settings: Self::Settings) -> Self {
+impl SvgRenderer {
+    /// Creates a new [SvgRenderer]
+    ///
+    /// `preserve_height` allows you to decide which axis to preserve.
+    /// If `true`, then the rendered image will map `-1..=1` in the y axis in camera space to `size.y..=0`.
+    /// If `false` then the rendered image will be mapped for the x axis.
+    pub fn new(
+        size: Vec2,
+        background: Option<Color>,
+        ints_only: bool,
+        preserve_height: bool,
+        circle_vertex_threshold: usize,
+    ) -> Self {
         let mut document = format!(
             "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}\" height=\"{}\">",
-            settings.size.x, settings.size.y
+            size.x, size.y
         );
 
-        if let Some(background) = settings.background {
+        if let Some(background) = background {
             write!(
                 document,
                 "<rect fill=\"{}\" width=\"{}\" height=\"{}\"/>",
                 background.as_hex(false),
-                settings.size.x,
-                settings.size.y
+                size.x,
+                size.y
             )
             .unwrap();
         }
 
-        let (scale, center_offset) = if settings.preserve_height {
-            let scale = settings.size.y as f32 / 2.0;
-            (scale, Vec2::new(settings.size.x as f32 / 2.0 / scale, 1.0))
+        let (scale, center_offset) = if preserve_height {
+            let scale = size.y as f32 / 2.0;
+            (scale, Vec2::new(size.x as f32 / 2.0 / scale, 1.0))
         } else {
-            let scale = settings.size.x as f32 / 2.0;
-            (scale, Vec2::new(1.0, settings.size.y as f32 / 2.0 / scale))
+            let scale = size.x as f32 / 2.0;
+            (scale, Vec2::new(1.0, size.y as f32 / 2.0 / scale))
         };
 
-        let circle_vertex_threshold = if settings.circle_vertex_threshold < 3 {
+        let circle_vertex_threshold = if circle_vertex_threshold < 3 {
             3
         } else {
-            settings.circle_vertex_threshold
+            circle_vertex_threshold
         };
 
         Self {
             scale,
             center_offset,
-            ints_only: settings.ints_only,
+            ints_only,
             circle_vertex_threshold,
             document,
         }
     }
+}
+
+impl Renderer for SvgRenderer {
+    type Output = String;
 
     fn render(&mut self, shape: &Shape) {
         // Check if shape approximates a circle, if so, render it as such.

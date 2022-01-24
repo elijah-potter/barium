@@ -1,7 +1,7 @@
 extern crate denim;
 
 use denim::{
-    renderers::{SkiaRenderer, SkiaRendererSettings, SvgRenderer, SvgRendererSettings},
+    renderers::{SkiaRenderer, SvgRenderer},
     Canvas, Color, LineEnd, Stroke, UVec2, Vec2,
 };
 
@@ -50,22 +50,22 @@ fn main() {
     );
 
     // Save to png
-    let png = canvas.render::<SkiaRenderer>(SkiaRendererSettings {
-        size: UVec2::splat(1000),
-        background: Some(Color::black()),
-        preserve_height: false,
-        antialias: true,
-    });
+    let png = canvas.render(SkiaRenderer::new(
+        UVec2::splat(1000),
+        Some(Color::black()),
+        false,
+        true,
+    ));
     png.save("smile.png").unwrap();
 
     // Save to svg
-    let svg = canvas.render::<SvgRenderer>(SvgRendererSettings {
-        size: Vec2::splat(1000.0),
-        background: Some(Color::black()),
-        ints_only: false,
-        preserve_height: false,
-        circle_vertex_threshold: 32,
-    });
+    let svg = canvas.render(SvgRenderer::new(
+        Vec2::splat(1000.0),
+        Some(Color::black()),
+        false,
+        false,
+        32,
+    ));
 
     std::fs::write("smile.svg", svg).unwrap();
 }
