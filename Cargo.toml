@@ -8,13 +8,12 @@ glam = "0.20.1"
 tiny-skia = { version = "0.6.1", optional = true }
 retain_mut = "0.1.5"
 
-# We remove rayon for portability.
+# Keep everything but rayon for portability, and gif because it isn't useful.
 [dependencies.image]
 version = "0.23.14"
 default-features = false
 optional = true
 features = [
-    "gif",
     "jpeg",
     "ico",
     "png",
@@ -28,6 +27,9 @@ features = [
     "dds",
     "farbfeld",
 ]
+
+[dev-dependencies]
+anyhow = "1.0.53"
 
 [features]
 default = ["tiny_skia_renderer", "svg_renderer"]
