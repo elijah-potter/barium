@@ -15,13 +15,18 @@ pub struct SkiaRenderer {
     canvas: Pixmap,
 }
 
-impl SkiaRenderer{
+impl SkiaRenderer {
     /// Create a new [SkiaRenderer].
-    /// 
+    ///
     /// `preserve_height` allows you to decide which axis to preserve.
     /// If `true`, then the rendered image will map `-1..=1` in the y axis in camera space to `size.y..=0`.
     /// If `false` then the rendered image will be mapped for the x axis.
-    pub fn new(size: UVec2, background: Option<Color>, antialias: bool, preserve_height: bool) -> Self {
+    pub fn new(
+        size: UVec2,
+        background: Option<Color>,
+        antialias: bool,
+        preserve_height: bool,
+    ) -> Self {
         let mut canvas = Pixmap::new(size.x, size.y).unwrap();
 
         if let Some(background) = background {

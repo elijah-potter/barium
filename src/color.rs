@@ -122,7 +122,7 @@ impl Color {
 
     /// Modify the green channel, consuming the parent.
     #[inline]
-    pub fn with_g(mut self, g: f32) -> Self{
+    pub fn with_g(mut self, g: f32) -> Self {
         *self.g_mut() = g;
         self
     }
@@ -136,7 +136,7 @@ impl Color {
 
     /// Modify the alpha channel, consuming the parent.
     #[inline]
-    pub fn with_a(mut self, a: f32) -> Self{
+    pub fn with_a(mut self, a: f32) -> Self {
         *self.a_mut() = a;
         self
     }

@@ -5,7 +5,7 @@ use denim::{
     Canvas, Color, LineEnd, Stroke, UVec2, Vec2,
 };
 
-fn main() -> anyhow::Result<()>{
+fn main() -> anyhow::Result<()> {
     // Create a canvas, centered on (0, 0). The camera ranges from (-1.0, -1.0) to (1.0, 1.0).
     let mut canvas = Canvas::new(1000);
 

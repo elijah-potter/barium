@@ -1,11 +1,8 @@
-use std::{f32::consts::PI};
+use std::f32::consts::PI;
 
-use denim::{
-    renderers::{SkiaRenderer},
-    Canvas, Color, Stroke, UVec2, Vec2,
-};
+use denim::{renderers::SkiaRenderer, Canvas, Color, Stroke, UVec2, Vec2};
 
-fn main() -> anyhow::Result<()>{
+fn main() -> anyhow::Result<()> {
     let mut canvas = Canvas::new(1000);
 
     // Create a single spiral
@@ -32,12 +29,14 @@ fn main() -> anyhow::Result<()>{
         canvas.rotate_camera(PI / 4.0);
     }
 
-    canvas.render::<SkiaRenderer>(SkiaRenderer::new(
-        UVec2::splat(1000),
-        Some(Color::black()),
-        true,
-        false,
-    )).save("spiral.png")?;
+    canvas
+        .render::<SkiaRenderer>(SkiaRenderer::new(
+            UVec2::splat(1000),
+            Some(Color::black()),
+            true,
+            false,
+        ))
+        .save("spiral.png")?;
 
     Ok(())
 }
