@@ -6,7 +6,7 @@ use std::fmt::Write;
 /// A renderer for Scalable Vector Graphics.
 ///
 /// Unless a shape approximates a circle, it will be drawn as either a polygon or a polyline.
-/// If it does approximate a circle and meets [circle_vertex_threshold](SvgRendererSettings), it will be drawn as a circle.
+/// If it does approximate a circle and meets [circle_vertex_threshold](SvgRenderer), it will be drawn as a circle.
 #[derive(Clone)]
 pub struct SvgRenderer {
     scale: f32,
