@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use denim::{renderers::SkiaRenderer, Canvas, Color, Stroke, UVec2, Vec2};
+use barium::{renderers::SkiaRenderer, Canvas, Color, Stroke, UVec2, Vec2};
 
 fn main() -> anyhow::Result<()> {
     let mut canvas = Canvas::new(1000);
@@ -21,7 +21,7 @@ fn main() -> anyhow::Result<()> {
             Some(Stroke {
                 color: (Color::white() * (i as f32 / 9.0)).with_a(1.0),
                 width: 0.01,
-                line_end: denim::LineEnd::Round,
+                line_end: barium::LineEnd::Round,
             }),
             None,
         );

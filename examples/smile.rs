@@ -1,6 +1,6 @@
-extern crate denim;
+extern crate barium;
 
-use denim::{
+use barium::{
     renderers::{SkiaRenderer, SvgRenderer},
     Canvas, Color, LineEnd, Stroke, UVec2, Vec2,
 };
