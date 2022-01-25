@@ -5,7 +5,7 @@ use denim::{
     Canvas, Color, LineEnd, Stroke, UVec2, Vec2,
 };
 
-fn main() {
+fn main() -> anyhow::Result<()>{
     // Create a canvas, centered on (0, 0). The camera ranges from (-1.0, -1.0) to (1.0, 1.0).
     let mut canvas = Canvas::new(1000);
 
@@ -56,7 +56,7 @@ fn main() {
         false,
         true,
     ));
-    png.save("smile.png").unwrap();
+    png.save("smile.png")?;
 
     // Save to svg
     let svg = canvas.render(SvgRenderer::new(
@@ -67,5 +67,7 @@ fn main() {
         32,
     ));
 
-    std::fs::write("smile.svg", svg).unwrap();
+    std::fs::write("smile.svg", svg)?;
+
+    Ok(())
 }
