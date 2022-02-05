@@ -18,8 +18,10 @@ mod color;
  * This module contains several basic renderers for everyday use. They also serve as referance if you want to implement your own renderer.
  */
 pub mod renderers;
+mod path_builder;
 
 pub use canvas::{Canvas, LineEnd, Renderer, Shape, Stroke};
 pub use color::Color;
 pub use glam::{Mat2, UVec2, Vec2};
 pub use image::RgbaImage;
+pub use path_builder::PathBuilder;

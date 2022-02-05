@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use crate::color::Color;
+use crate::{color::Color, PathBuilder};
 use glam::{Affine2, Mat2, Vec2};
 
 use retain_mut::RetainMut;
@@ -84,8 +84,7 @@ pub trait Renderer {
 /// For example, a rectangle with corners at `(-1, -1)` and `(1, 1)` will be twice as large in World Space if it is drawn while the camera's `zoom` is at `0.5`.
 #[derive(Debug, Clone)]
 pub struct Canvas {
-    /// Defines the resolution at which certain helper functions generate points, (circles, bezier curves).
-    pub points_per_unit: usize,
+    points_per_unit: usize,
     zoom: f32,
     to_camera_affine: Affine2,
     to_world_affine: Affine2,
@@ -153,7 +152,7 @@ impl Canvas {
         self.shapes.as_mut_slice()
     }
 
-    /// Rotate the camera.
+    /// Rotate the camera clockwise.
     pub fn rotate_camera(&mut self, radians: f32) {
         let rotate_mat = Mat2::from_angle(radians);
         self.to_camera_affine.matrix2 = rotate_mat.mul_mat2(&self.to_camera_affine.matrix2);
@@ -432,121 +431,44 @@ impl Canvas {
         self.draw_shape_absolute(vec![p0, p1, p2, p3], stroke, fill);
     }
 
+    /// Create and draw a path onto the canvas, projected from the camera.
+    ///
+    /// This is similar to the `svg` `<path>` instruction.
+    pub fn draw_path<F>(&mut self, stroke: Option<Stroke>, fill: Option<Color>, f: F)
+    where
+        F: FnOnce(PathBuilder) -> PathBuilder,
+    {
+        f(PathBuilder::new(self.points_per_unit)).build(stroke, fill, self);
+    }
+
+    /// Create and draw a path directly onto the canvas.
+    ///
+    /// This is similar to the `svg` `<path>` instruction.
+    pub fn draw_path_absolute<F>(&mut self, stroke: Option<Stroke>, fill: Option<Color>, f: F)
+    where
+        F: FnOnce(PathBuilder) -> PathBuilder,
+    {
+        f(PathBuilder::new(self.points_per_unit)).build_absolute(stroke, fill, self);
+    }
+
     /// Draw a quadratic bezier curve onto the canvas, projected from the camera.
-    pub fn draw_quadratic_bezier(
-        &mut self,
-        start: Vec2,
-        middle: Vec2,
-        end: Vec2,
-        stroke: Option<Stroke>,
-        fill: Option<Color>,
-    ) {
-        let curve_length = start.distance(middle) + middle.distance(end);
-        let point_count = curve_length * self.points_per_unit as f32;
-
-        let mut points = Vec::with_capacity(point_count as usize);
-
-        for i in 0..point_count as usize {
-            points.push(Self::quadratic(start, middle, end, i as f32 / point_count));
-        }
-
-        self.draw_shape(points, stroke, fill);
+    pub fn draw_quadratic_bezier(&mut self, start_point: Vec2, control_point: Vec2, end_point: Vec2, stroke: Option<Stroke>, fill: Option<Color>){
+        self.draw_path(stroke, fill, |path| path.move_to(start_point).quadratic_bezier_to(end_point, control_point));
     }
 
-    /// Draw a quadratic bezier curve directly onto the canvas.
-    pub fn draw_quadratic_bezier_absolute(
-        &mut self,
-        start: Vec2,
-        middle: Vec2,
-        end: Vec2,
-        stroke: Option<Stroke>,
-        fill: Option<Color>,
-    ) {
-        let curve_length = start.distance(middle) + middle.distance(end);
-        let point_count = curve_length * self.points_per_unit as f32;
-
-        let mut points = Vec::with_capacity(point_count as usize);
-
-        for i in 0..point_count as usize {
-            points.push(Self::quadratic(start, middle, end, i as f32 / point_count));
-        }
-
-        self.draw_shape_absolute(points, stroke, fill);
+    /// Draw a quadratic bezier curve directly onto the canvas..
+    pub fn draw_quadratic_bezier_absolute(&mut self, start_point: Vec2, control_point: Vec2, end_point: Vec2, stroke: Option<Stroke>, fill: Option<Color>){
+        self.draw_path_absolute(stroke, fill, |path| path.move_to(start_point).quadratic_bezier_to(end_point, control_point));
     }
 
-    /// Draw a quartic bezier curve onto the canvas, projected from the camera.
-    pub fn draw_quartic_bezier(
-        &mut self,
-        start: Vec2,
-        second: Vec2,
-        third: Vec2,
-        end: Vec2,
-        stroke: Option<Stroke>,
-        fill: Option<Color>,
-    ) {
-        let curve_length = start.distance(second) + second.distance(third) + third.distance(end);
-        let point_count = curve_length * self.points_per_unit as f32;
-
-        let mut points = Vec::with_capacity(point_count as usize);
-
-        for i in 0..point_count as usize {
-            points.push(Self::quartic(
-                start,
-                second,
-                third,
-                end,
-                i as f32 / point_count,
-            ));
-        }
-
-        self.draw_shape(points, stroke, fill);
+    /// Draw a cubic bezier curve onto the canvas, projected from the camera.
+    pub fn draw_cubic_bezier(&mut self, start_point: Vec2, control_point_0: Vec2, control_point_1: Vec2, end_point: Vec2, stroke: Option<Stroke>, fill: Option<Color>){
+        self.draw_path(stroke, fill, |path| path.move_to(start_point).cubic_bezier_to(end_point, control_point_0, control_point_1));
     }
 
-    /// Draw a quartic bezier curve directly onto the canvas.
-    pub fn draw_quartic_bezier_absolute(
-        &mut self,
-        start: Vec2,
-        second: Vec2,
-        third: Vec2,
-        end: Vec2,
-        stroke: Option<Stroke>,
-        fill: Option<Color>,
-    ) {
-        let curve_length = start.distance(second) + second.distance(third) + third.distance(end);
-        let point_count = curve_length * self.points_per_unit as f32;
-
-        let mut points = Vec::with_capacity(point_count as usize);
-
-        for i in 0..point_count as usize {
-            points.push(Self::quartic(
-                start,
-                second,
-                third,
-                end,
-                i as f32 / point_count,
-            ));
-        }
-
-        self.draw_shape_absolute(points, stroke, fill);
-    }
-
-    fn point_on_line(a: Vec2, b: Vec2, t: f32) -> Vec2 {
-        a - ((a - b) * t)
-    }
-
-    fn quadratic(start: Vec2, middle: Vec2, end: Vec2, t: f32) -> Vec2 {
-        let a = Self::point_on_line(start, middle, t);
-        let b = Self::point_on_line(middle, end, t);
-        Self::point_on_line(a, b, t)
-    }
-
-    fn quartic(start: Vec2, second: Vec2, third: Vec2, end: Vec2, t: f32) -> Vec2 {
-        let a = Self::point_on_line(start, second, t);
-        let b = Self::point_on_line(second, third, t);
-        let c = Self::point_on_line(third, end, t);
-        let d = Self::point_on_line(a, b, t);
-        let e = Self::point_on_line(b, c, t);
-        Self::point_on_line(d, e, t)
+    /// Draw a cubic bezier curve directly onto the canvas.
+    pub fn draw_cubic_bezier_absolute(&mut self, start_point: Vec2, control_point_0: Vec2, control_point_1: Vec2, end_point: Vec2, stroke: Option<Stroke>, fill: Option<Color>){
+        self.draw_path_absolute(stroke, fill, |path| path.move_to(start_point).cubic_bezier_to(end_point, control_point_0, control_point_1));
     }
 
     /// Draw a straight line onto the canvas, projected from the camera.
@@ -594,5 +516,137 @@ impl Canvas {
     /// Transform any given point from camera space to world space.
     pub fn to_world_space(&self, point: Vec2) -> Vec2 {
         self.to_world_affine.transform_point2(point)
+    }
+
+    /// Get the canvas' points per unit.
+    /// 
+    /// This is essentially how detailed it will generate certain kinds of geometry (bezier curves, circles).
+    pub fn points_per_unit(&self) -> usize {
+        self.points_per_unit
+    }
+
+    /// Set the canvas' points per unit.
+    /// 
+    /// This is essentially how detailed it will generate certain kinds of geometry (bezier curves, circles).
+    pub fn set_points_per_unit(&mut self, points_per_unit: usize) {
+        self.points_per_unit = points_per_unit;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const EPSILON: f32 = 0.001;
+
+    /// Assert that two [Vec2] are within [EPSILON] of each other.
+    fn assert_vec2_eq(a: Vec2, b: Vec2) {
+        if !a.abs_diff_eq(b, EPSILON) {
+            panic!("assertion failed: {}, {}", a, b);
+        }
+    }
+
+    /// Verify that the default camera does not transform points when converting to camera space.
+    #[test]
+    fn no_transform_world_camera() {
+        let canvas = Canvas::default();
+
+        assert_vec2_eq(canvas.to_camera_space(Vec2::ZERO), Vec2::ZERO);
+        assert_vec2_eq(canvas.to_camera_space(Vec2::ONE), Vec2::ONE);
+        assert_vec2_eq(canvas.to_camera_space(-Vec2::ONE), -Vec2::ONE);
+        assert_vec2_eq(
+            canvas.to_camera_space(Vec2::new(-1.0, 1.0)),
+            Vec2::new(-1.0, 1.0),
+        );
+        assert_vec2_eq(
+            canvas.to_camera_space(Vec2::new(1.0, -1.0)),
+            Vec2::new(1.0, -1.0),
+        );
+    }
+
+    /// Verify that the default camera does not transform points when converting to world space.
+    #[test]
+    fn no_transform_camera_world() {
+        let canvas = Canvas::default();
+
+        assert_vec2_eq(canvas.to_world_space(Vec2::ZERO), Vec2::ZERO);
+        assert_vec2_eq(canvas.to_world_space(Vec2::ONE), Vec2::ONE);
+        assert_vec2_eq(canvas.to_world_space(-Vec2::ONE), -Vec2::ONE);
+        assert_vec2_eq(
+            canvas.to_world_space(Vec2::new(-1.0, 1.0)),
+            Vec2::new(-1.0, 1.0),
+        );
+        assert_vec2_eq(
+            canvas.to_world_space(Vec2::new(1.0, -1.0)),
+            Vec2::new(1.0, -1.0),
+        );
+    }
+
+    /// Verify that a translated camera correctly transforms points when converting to camera space.
+    #[test]
+    fn translate_transform_world_camera() {
+        let mut canvas = Canvas::default();
+
+        canvas.move_camera(Vec2::ONE);
+
+        assert_vec2_eq(canvas.to_camera_space(Vec2::ZERO), Vec2::new(-1.0, -1.0));
+        assert_vec2_eq(canvas.to_camera_space(Vec2::ONE), Vec2::ZERO);
+        assert_vec2_eq(canvas.to_camera_space(-Vec2::ONE), -Vec2::ONE * 2.0);
+        assert_vec2_eq(
+            canvas.to_camera_space(Vec2::new(-1.0, 1.0)),
+            Vec2::new(-2.0, 0.0),
+        );
+        assert_vec2_eq(
+            canvas.to_camera_space(Vec2::new(1.0, -1.0)),
+            Vec2::new(0.0, -2.0),
+        );
+    }
+
+    /// Verify that a translated camera correctly transforms points when converting to world space.
+    #[test]
+    fn translate_transform_camera_world() {
+        let mut canvas = Canvas::default();
+
+        canvas.move_camera(Vec2::ONE);
+
+        assert_vec2_eq(canvas.to_world_space(Vec2::ZERO), Vec2::new(1.0, 1.0));
+        assert_vec2_eq(canvas.to_world_space(Vec2::ONE), Vec2::ONE * 2.0);
+        assert_vec2_eq(canvas.to_world_space(-Vec2::ONE), Vec2::ZERO);
+        assert_vec2_eq(
+            canvas.to_world_space(Vec2::new(-1.0, 1.0)),
+            Vec2::new(0.0, 2.0),
+        );
+        assert_vec2_eq(
+            canvas.to_world_space(Vec2::new(1.0, -1.0)),
+            Vec2::new(2.0, 0.0),
+        );
+    }
+
+    /// Verify that a rotated camera correctly transforms points when converting to camera space.
+    #[test]
+    fn rotate_transform_world_camera() {
+        let mut canvas = Canvas::default();
+
+        canvas.rotate_camera(PI / 2.0);
+
+        assert_vec2_eq(canvas.to_camera_space(Vec2::ZERO), Vec2::ZERO);
+        assert_vec2_eq(canvas.to_camera_space(Vec2::ONE), Vec2::new(-1.0, 1.0));
+        assert_vec2_eq(canvas.to_camera_space(-Vec2::ONE), Vec2::new(1.0, -1.0));
+        assert_vec2_eq(canvas.to_camera_space(Vec2::new(-1.0, 1.0)), -Vec2::ONE);
+        assert_vec2_eq(canvas.to_camera_space(Vec2::new(1.0, -1.0)), Vec2::ONE);
+    }
+
+    /// Verify that a rotated camera correctly transforms points when converting to world space.
+    #[test]
+    fn rotate_transform_camera_world() {
+        let mut canvas = Canvas::default();
+
+        canvas.rotate_camera(PI / 2.0);
+
+        assert_vec2_eq(canvas.to_world_space(Vec2::ZERO), Vec2::ZERO);
+        assert_vec2_eq(canvas.to_world_space(Vec2::ONE), Vec2::new(1.0, -1.0));
+        assert_vec2_eq(canvas.to_world_space(-Vec2::ONE), Vec2::new(-1.0, 1.0));
+        assert_vec2_eq(canvas.to_world_space(Vec2::new(-1.0, 1.0)), Vec2::ONE);
+        assert_vec2_eq(canvas.to_world_space(Vec2::new(1.0, -1.0)), -Vec2::ONE);
     }
 }
