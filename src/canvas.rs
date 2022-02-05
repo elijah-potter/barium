@@ -160,8 +160,8 @@ impl Canvas {
     }
 
     /// Moves the camera by a certain amount. This is not effected by zoom.
-    pub fn move_camera(&mut self, translation: Vec2) {
-        self.to_camera_affine.translation -= translation;
+    pub fn move_camera<P: Into<Vec2>>(&mut self, translation: P) {
+        self.to_camera_affine.translation -= translation.into();
         self.to_world_affine = self.to_camera_affine.inverse();
     }
 
@@ -242,13 +242,16 @@ impl Canvas {
     }
 
     /// Draw a rectangle onto the canvas, projected from the camera.
-    pub fn draw_rect(
+    pub fn draw_rect<P: Into<Vec2>>(
         &mut self,
-        top_left: Vec2,
-        bottom_right: Vec2,
+        top_left: P,
+        bottom_right: P,
         stroke: Option<Stroke>,
         fill: Option<Color>,
     ) {
+        let top_left = top_left.into();
+        let bottom_right = bottom_right.into();
+
         self.draw_shape(
             vec![
                 top_left,
@@ -263,13 +266,16 @@ impl Canvas {
     }
 
     /// Draw a rectangle directly onto the canvas.
-    pub fn draw_rect_absolute(
+    pub fn draw_rect_absolute<P: Into<Vec2>>(
         &mut self,
-        top_left: Vec2,
-        bottom_right: Vec2,
+        top_left: P,
+        bottom_right: P,
         stroke: Option<Stroke>,
         fill: Option<Color>,
     ) {
+        let top_left = top_left.into();
+        let bottom_right = bottom_right.into();
+
         self.draw_shape_absolute(
             vec![
                 top_left,
@@ -287,9 +293,9 @@ impl Canvas {
     ///
     /// Rotation is in radians.
     /// Will panic if `sides` < 3.
-    pub fn draw_regular_polygon(
+    pub fn draw_regular_polygon<P: Into<Vec2>>(
         &mut self,
-        center: Vec2,
+        center: P,
         sides: usize,
         radius: f32,
         rotation: f32,
@@ -299,6 +305,8 @@ impl Canvas {
         if sides < 3 {
             panic!("There must be at least 3 sides in a regular polygon.")
         }
+
+        let center = center.into();
 
         let mut points = Vec::with_capacity(sides + 1);
 
@@ -319,9 +327,9 @@ impl Canvas {
     ///
     /// Rotation is in radians.
     /// Will panic if `sides` < 3.
-    pub fn draw_regular_polygon_absolute(
+    pub fn draw_regular_polygon_absolute<P: Into<Vec2>>(
         &mut self,
-        center: Vec2,
+        center: P,
         sides: usize,
         radius: f32,
         rotation: f32,
@@ -331,6 +339,8 @@ impl Canvas {
         if sides < 3 {
             panic!("There must be at least 3 sides in a regular polygon.")
         }
+
+        let center = center.into();
 
         let mut points = Vec::with_capacity(sides + 1);
 
@@ -350,13 +360,14 @@ impl Canvas {
     /// Draws a circle onto the canvas, projected from the camera.
     /// This is a wrapper over [draw_regular_polygon](Self::draw_regular_polygon).
     /// If you want high-quality circles, use that function directly or adjust [points_per_unit](Self::points_per_unit) to fit your needs.
-    pub fn draw_circle(
+    pub fn draw_circle<P: Into<Vec2>>(
         &mut self,
-        center: Vec2,
+        center: P,
         radius: f32,
         stroke: Option<Stroke>,
         fill: Option<Color>,
     ) {
+        let center = center.into();
         let circumference = 2.0 * PI * radius;
         let sides = (circumference * self.points_per_unit as f32) as usize;
         if sides > 2 {
@@ -367,13 +378,14 @@ impl Canvas {
     /// Draws a circle directly onto the canvas.
     /// This is a wrapper over [draw_regular_polygon_absolute](Self::draw_regular_polygon_absolute).
     /// If you want high-quality circles, use that function directly or adjust [points_per_unit](Self::points_per_unit) to fit your needs.
-    pub fn draw_circle_absolute(
+    pub fn draw_circle_absolute<P: Into<Vec2>>(
         &mut self,
-        center: Vec2,
+        center: P,
         radius: f32,
         stroke: Option<Stroke>,
         fill: Option<Color>,
     ) {
+        let center = center.into();
         let circumference = 2.0 * PI * radius;
         let sides = (circumference * self.points_per_unit as f32) as usize;
         if sides > 2 {
@@ -382,53 +394,53 @@ impl Canvas {
     }
 
     /// Draw a triangle onto the canvas, projected from the camera.
-    pub fn draw_triangle(
+    pub fn draw_triangle<P: Into<Vec2>>(
         &mut self,
-        p0: Vec2,
-        p1: Vec2,
-        p2: Vec2,
+        p0: P,
+        p1: P,
+        p2: P,
         stroke: Option<Stroke>,
         fill: Option<Color>,
     ) {
-        self.draw_shape(vec![p0, p1, p2], stroke, fill);
+        self.draw_shape(vec![p0.into(), p1.into(), p2.into()], stroke, fill);
     }
 
     /// Draw a triangle directly onto the canvas.
-    pub fn draw_triangle_absolute(
+    pub fn draw_triangle_absolute<P: Into<Vec2>>(
         &mut self,
-        p0: Vec2,
-        p1: Vec2,
-        p2: Vec2,
+        p0: P,
+        p1: P,
+        p2: P,
         stroke: Option<Stroke>,
         fill: Option<Color>,
     ) {
-        self.draw_shape_absolute(vec![p0, p1, p2], stroke, fill);
+        self.draw_shape_absolute(vec![p0.into(), p1.into(), p2.into()], stroke, fill);
     }
 
     /// Draw a quad onto the canvas, projected from the camera.
-    pub fn draw_quad(
+    pub fn draw_quad<P: Into<Vec2>>(
         &mut self,
-        p0: Vec2,
-        p1: Vec2,
-        p2: Vec2,
-        p3: Vec2,
+        p0: P,
+        p1: P,
+        p2: P,
+        p3: P,
         stroke: Option<Stroke>,
         fill: Option<Color>,
     ) {
-        self.draw_shape(vec![p0, p1, p2, p3], stroke, fill);
+        self.draw_shape(vec![p0.into(), p1.into(), p2.into(), p3.into()], stroke, fill);
     }
 
     /// Draw a quad directly onto the canvas.
-    pub fn draw_quad_absolute(
+    pub fn draw_quad_absolute<P: Into<Vec2>>(
         &mut self,
-        p0: Vec2,
-        p1: Vec2,
-        p2: Vec2,
-        p3: Vec2,
+        p0: P,
+        p1: P,
+        p2: P,
+        p3: P,
         stroke: Option<Stroke>,
         fill: Option<Color>,
     ) {
-        self.draw_shape_absolute(vec![p0, p1, p2, p3], stroke, fill);
+        self.draw_shape_absolute(vec![p0.into(), p1.into(), p2.into(), p3.into()], stroke, fill);
     }
 
     /// Create and draw a path onto the canvas, projected from the camera.
@@ -452,54 +464,54 @@ impl Canvas {
     }
 
     /// Draw a quadratic bezier curve onto the canvas, projected from the camera.
-    pub fn draw_quadratic_bezier(&mut self, start_point: Vec2, control_point: Vec2, end_point: Vec2, stroke: Option<Stroke>, fill: Option<Color>){
-        self.draw_path(stroke, fill, |path| path.move_to(start_point).quadratic_bezier_to(end_point, control_point));
+    pub fn draw_quadratic_bezier<P: Into<Vec2>>(&mut self, start_point: P, control_point: P, end_point: P, stroke: Option<Stroke>, fill: Option<Color>){
+        self.draw_path(stroke, fill, |path| path.move_to(start_point.into()).quadratic_bezier_to(end_point.into(), control_point.into()));
     }
 
     /// Draw a quadratic bezier curve directly onto the canvas..
-    pub fn draw_quadratic_bezier_absolute(&mut self, start_point: Vec2, control_point: Vec2, end_point: Vec2, stroke: Option<Stroke>, fill: Option<Color>){
-        self.draw_path_absolute(stroke, fill, |path| path.move_to(start_point).quadratic_bezier_to(end_point, control_point));
+    pub fn draw_quadratic_bezier_absolute<P: Into<Vec2>>(&mut self, start_point: P, control_point: P, end_point: P, stroke: Option<Stroke>, fill: Option<Color>){
+        self.draw_path_absolute(stroke, fill, |path| path.move_to(start_point.into()).quadratic_bezier_to(end_point.into(), control_point.into()));
     }
 
     /// Draw a cubic bezier curve onto the canvas, projected from the camera.
-    pub fn draw_cubic_bezier(&mut self, start_point: Vec2, control_point_0: Vec2, control_point_1: Vec2, end_point: Vec2, stroke: Option<Stroke>, fill: Option<Color>){
-        self.draw_path(stroke, fill, |path| path.move_to(start_point).cubic_bezier_to(end_point, control_point_0, control_point_1));
+    pub fn draw_cubic_bezier<P: Into<Vec2>>(&mut self, start_point: P, control_point_0: P, control_point_1: P, end_point: P, stroke: Option<Stroke>, fill: Option<Color>){
+        self.draw_path(stroke, fill, |path| path.move_to(start_point.into()).cubic_bezier_to(end_point.into(), control_point_0.into(), control_point_1.into()));
     }
 
     /// Draw a cubic bezier curve directly onto the canvas.
-    pub fn draw_cubic_bezier_absolute(&mut self, start_point: Vec2, control_point_0: Vec2, control_point_1: Vec2, end_point: Vec2, stroke: Option<Stroke>, fill: Option<Color>){
-        self.draw_path_absolute(stroke, fill, |path| path.move_to(start_point).cubic_bezier_to(end_point, control_point_0, control_point_1));
+    pub fn draw_cubic_bezier_absolute<P: Into<Vec2>>(&mut self, start_point: P, control_point_0: P, control_point_1: P, end_point: P, stroke: Option<Stroke>, fill: Option<Color>){
+        self.draw_path_absolute(stroke, fill, |path| path.move_to(start_point.into()).cubic_bezier_to(end_point.into(), control_point_0.into(), control_point_1.into()));
     }
 
     /// Draw a straight line onto the canvas, projected from the camera.
-    pub fn draw_line(&mut self, p0: Vec2, p1: Vec2, stroke: Option<Stroke>, fill: Option<Color>) {
-        self.draw_shape(vec![p0, p1], stroke, fill);
+    pub fn draw_line<P: Into<Vec2>>(&mut self, p0: P, p1: P, stroke: Option<Stroke>, fill: Option<Color>) {
+        self.draw_shape(vec![p0.into(), p1.into()], stroke, fill);
+    }
+
+    /// Draw a straight line directly onto the canvas.
+    pub fn draw_line_absolute<P: Into<Vec2>>(
+        &mut self,
+        p0: P,
+        p1: P,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_shape_absolute(vec![p0.into(), p1.into()], stroke, fill);
     }
 
     /// Draw a line made of several segments onto the canvas, projected from the camera.
     pub fn draw_polyline<C: Into<Vec<Vec2>>>(&mut self, points: C, stroke: Stroke) {
         self.draw_shape(points, Some(stroke), None);
     }
+    
+    /// Draw a line made of several segments directly onto the canvas.
+    pub fn draw_polyline_absolute<C: Into<Vec<Vec2>>>(&mut self, points: C, stroke: Stroke) {
+        self.draw_shape_absolute(points, Some(stroke), None);
+    }
 
     /// Draw a solid shape made of several sides onto the canvas, projected from the camera.
     pub fn draw_polygon<C: Into<Vec<Vec2>>>(&mut self, points: C, fill: Color) {
         self.draw_shape(points, None, Some(fill));
-    }
-
-    /// Draw a straight line directly onto the canvas.
-    pub fn draw_line_absolute(
-        &mut self,
-        p0: Vec2,
-        p1: Vec2,
-        stroke: Option<Stroke>,
-        fill: Option<Color>,
-    ) {
-        self.draw_shape_absolute(vec![p0, p1], stroke, fill);
-    }
-
-    /// Draw a line made of several segments directly onto the canvas.
-    pub fn draw_polyline_absolute<C: Into<Vec<Vec2>>>(&mut self, points: C, stroke: Stroke) {
-        self.draw_shape_absolute(points, Some(stroke), None);
     }
 
     /// Draw a solid shape made of several sides directly onto the canvas.
@@ -509,13 +521,13 @@ impl Canvas {
 
     /// Transform any given point from world space to camera space.
     /// Allows to scale to a given resolution width.
-    pub fn to_camera_space(&self, point: Vec2) -> Vec2 {
-        self.to_camera_affine.transform_point2(point)
+    pub fn to_camera_space<P: Into<Vec2>>(&self, point: P) -> Vec2 {
+        self.to_camera_affine.transform_point2(point.into())
     }
 
     /// Transform any given point from camera space to world space.
-    pub fn to_world_space(&self, point: Vec2) -> Vec2 {
-        self.to_world_affine.transform_point2(point)
+    pub fn to_world_space<P: Into<Vec2>>(&self, point: P) -> Vec2 {
+        self.to_world_affine.transform_point2(point.into())
     }
 
     /// Get the canvas' points per unit.
@@ -540,7 +552,10 @@ mod tests {
     const EPSILON: f32 = 0.001;
 
     /// Assert that two [Vec2] are within [EPSILON] of each other.
-    fn assert_vec2_eq(a: Vec2, b: Vec2) {
+    fn assert_vec2_eq<P: Into<Vec2>>(a: P, b: P) {
+        let a: Vec2 = a.into();
+        let b: Vec2 = b.into();
+
         if !a.abs_diff_eq(b, EPSILON) {
             panic!("assertion failed: {}, {}", a, b);
         }
@@ -555,7 +570,7 @@ mod tests {
         assert_vec2_eq(canvas.to_camera_space(Vec2::ONE), Vec2::ONE);
         assert_vec2_eq(canvas.to_camera_space(-Vec2::ONE), -Vec2::ONE);
         assert_vec2_eq(
-            canvas.to_camera_space(Vec2::new(-1.0, 1.0)),
+            canvas.to_camera_space((-1.0, 1.0)),
             Vec2::new(-1.0, 1.0),
         );
         assert_vec2_eq(
