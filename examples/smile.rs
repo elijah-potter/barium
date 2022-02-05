@@ -19,8 +19,8 @@ fn main() -> anyhow::Result<()> {
 
     // Draw eyes
     canvas.draw_line(
-        Vec2::new(-0.5, 0.25),
-        Vec2::new(-0.5, 0.0),
+        (-0.5, 0.25),
+        (-0.5, 0.0),
         Some(Stroke {
             color: Color::black(),
             width: 0.2,
@@ -30,8 +30,8 @@ fn main() -> anyhow::Result<()> {
     );
 
     canvas.draw_line(
-        Vec2::new(0.5, 0.25),
-        Vec2::new(0.5, 0.0),
+        (0.5, 0.25),
+        (0.5, 0.0),
         Some(Stroke {
             color: Color::black(),
             width: 0.2,
@@ -42,9 +42,9 @@ fn main() -> anyhow::Result<()> {
 
     // Draw mouth
     canvas.draw_quadratic_bezier(
-        Vec2::new(-0.5, -0.3),
-        Vec2::Y * -0.5,
-        Vec2::new(0.5, -0.3),
+        (-0.5, -0.3),
+    (0.0, -0.5),
+        (0.5, -0.3),
         Some(Stroke::new(Color::black(), 0.02, LineEnd::Round)),
         None
     );
