@@ -43,19 +43,14 @@ fn main() -> anyhow::Result<()> {
     // Draw mouth
     canvas.draw_quadratic_bezier(
         (-0.5, -0.3),
-    (0.0, -0.5),
+        (0.0, -0.5),
         (0.5, -0.3),
         Some(Stroke::new(Color::black(), 0.02, LineEnd::Round)),
-        None
+        None,
     );
 
     // Save to png
-    let png = canvas.render(SkiaRenderer::new(
-        UVec2::splat(1000),
-        None,
-        true,
-        true,
-    ));
+    let png = canvas.render(SkiaRenderer::new(UVec2::splat(1000), None, true, true));
     png.save("smile.png")?;
 
     // Save to svg

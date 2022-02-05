@@ -9,6 +9,7 @@
 
 mod canvas;
 mod color;
+mod path_builder;
 /**
  * A collection of backend renderers
  *
@@ -18,7 +19,6 @@ mod color;
  * This module contains several basic renderers for everyday use. They also serve as referance if you want to implement your own renderer.
  */
 pub mod renderers;
-mod path_builder;
 
 pub use canvas::{Canvas, LineEnd, Renderer, Shape, Stroke};
 pub use color::Color;

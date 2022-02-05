@@ -427,7 +427,11 @@ impl Canvas {
         stroke: Option<Stroke>,
         fill: Option<Color>,
     ) {
-        self.draw_shape(vec![p0.into(), p1.into(), p2.into(), p3.into()], stroke, fill);
+        self.draw_shape(
+            vec![p0.into(), p1.into(), p2.into(), p3.into()],
+            stroke,
+            fill,
+        );
     }
 
     /// Draw a quad directly onto the canvas.
@@ -440,7 +444,11 @@ impl Canvas {
         stroke: Option<Stroke>,
         fill: Option<Color>,
     ) {
-        self.draw_shape_absolute(vec![p0.into(), p1.into(), p2.into(), p3.into()], stroke, fill);
+        self.draw_shape_absolute(
+            vec![p0.into(), p1.into(), p2.into(), p3.into()],
+            stroke,
+            fill,
+        );
     }
 
     /// Create and draw a path onto the canvas, projected from the camera.
@@ -464,27 +472,81 @@ impl Canvas {
     }
 
     /// Draw a quadratic bezier curve onto the canvas, projected from the camera.
-    pub fn draw_quadratic_bezier<P: Into<Vec2>>(&mut self, start_point: P, control_point: P, end_point: P, stroke: Option<Stroke>, fill: Option<Color>){
-        self.draw_path(stroke, fill, |path| path.move_to(start_point.into()).quadratic_bezier_to(end_point.into(), control_point.into()));
+    pub fn draw_quadratic_bezier<P: Into<Vec2>>(
+        &mut self,
+        start_point: P,
+        control_point: P,
+        end_point: P,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_path(stroke, fill, |path| {
+            path.move_to(start_point.into())
+                .quadratic_bezier_to(end_point.into(), control_point.into())
+        });
     }
 
     /// Draw a quadratic bezier curve directly onto the canvas..
-    pub fn draw_quadratic_bezier_absolute<P: Into<Vec2>>(&mut self, start_point: P, control_point: P, end_point: P, stroke: Option<Stroke>, fill: Option<Color>){
-        self.draw_path_absolute(stroke, fill, |path| path.move_to(start_point.into()).quadratic_bezier_to(end_point.into(), control_point.into()));
+    pub fn draw_quadratic_bezier_absolute<P: Into<Vec2>>(
+        &mut self,
+        start_point: P,
+        control_point: P,
+        end_point: P,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_path_absolute(stroke, fill, |path| {
+            path.move_to(start_point.into())
+                .quadratic_bezier_to(end_point.into(), control_point.into())
+        });
     }
 
     /// Draw a cubic bezier curve onto the canvas, projected from the camera.
-    pub fn draw_cubic_bezier<P: Into<Vec2>>(&mut self, start_point: P, control_point_0: P, control_point_1: P, end_point: P, stroke: Option<Stroke>, fill: Option<Color>){
-        self.draw_path(stroke, fill, |path| path.move_to(start_point.into()).cubic_bezier_to(end_point.into(), control_point_0.into(), control_point_1.into()));
+    pub fn draw_cubic_bezier<P: Into<Vec2>>(
+        &mut self,
+        start_point: P,
+        control_point_0: P,
+        control_point_1: P,
+        end_point: P,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_path(stroke, fill, |path| {
+            path.move_to(start_point.into()).cubic_bezier_to(
+                end_point.into(),
+                control_point_0.into(),
+                control_point_1.into(),
+            )
+        });
     }
 
     /// Draw a cubic bezier curve directly onto the canvas.
-    pub fn draw_cubic_bezier_absolute<P: Into<Vec2>>(&mut self, start_point: P, control_point_0: P, control_point_1: P, end_point: P, stroke: Option<Stroke>, fill: Option<Color>){
-        self.draw_path_absolute(stroke, fill, |path| path.move_to(start_point.into()).cubic_bezier_to(end_point.into(), control_point_0.into(), control_point_1.into()));
+    pub fn draw_cubic_bezier_absolute<P: Into<Vec2>>(
+        &mut self,
+        start_point: P,
+        control_point_0: P,
+        control_point_1: P,
+        end_point: P,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
+        self.draw_path_absolute(stroke, fill, |path| {
+            path.move_to(start_point.into()).cubic_bezier_to(
+                end_point.into(),
+                control_point_0.into(),
+                control_point_1.into(),
+            )
+        });
     }
 
     /// Draw a straight line onto the canvas, projected from the camera.
-    pub fn draw_line<P: Into<Vec2>>(&mut self, p0: P, p1: P, stroke: Option<Stroke>, fill: Option<Color>) {
+    pub fn draw_line<P: Into<Vec2>>(
+        &mut self,
+        p0: P,
+        p1: P,
+        stroke: Option<Stroke>,
+        fill: Option<Color>,
+    ) {
         self.draw_shape(vec![p0.into(), p1.into()], stroke, fill);
     }
 
@@ -503,7 +565,7 @@ impl Canvas {
     pub fn draw_polyline<C: Into<Vec<Vec2>>>(&mut self, points: C, stroke: Stroke) {
         self.draw_shape(points, Some(stroke), None);
     }
-    
+
     /// Draw a line made of several segments directly onto the canvas.
     pub fn draw_polyline_absolute<C: Into<Vec<Vec2>>>(&mut self, points: C, stroke: Stroke) {
         self.draw_shape_absolute(points, Some(stroke), None);
@@ -531,14 +593,14 @@ impl Canvas {
     }
 
     /// Get the canvas' points per unit.
-    /// 
+    ///
     /// This is essentially how detailed it will generate certain kinds of geometry (bezier curves, circles).
     pub fn points_per_unit(&self) -> usize {
         self.points_per_unit
     }
 
     /// Set the canvas' points per unit.
-    /// 
+    ///
     /// This is essentially how detailed it will generate certain kinds of geometry (bezier curves, circles).
     pub fn set_points_per_unit(&mut self, points_per_unit: usize) {
         self.points_per_unit = points_per_unit;
@@ -569,10 +631,7 @@ mod tests {
         assert_vec2_eq(canvas.to_camera_space(Vec2::ZERO), Vec2::ZERO);
         assert_vec2_eq(canvas.to_camera_space(Vec2::ONE), Vec2::ONE);
         assert_vec2_eq(canvas.to_camera_space(-Vec2::ONE), -Vec2::ONE);
-        assert_vec2_eq(
-            canvas.to_camera_space((-1.0, 1.0)),
-            Vec2::new(-1.0, 1.0),
-        );
+        assert_vec2_eq(canvas.to_camera_space((-1.0, 1.0)), Vec2::new(-1.0, 1.0));
         assert_vec2_eq(
             canvas.to_camera_space(Vec2::new(1.0, -1.0)),
             Vec2::new(1.0, -1.0),
