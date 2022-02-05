@@ -18,11 +18,11 @@ fn main() -> anyhow::Result<()> {
     for i in 0..9 {
         canvas.draw_shape(
             points.clone(),
-            Some(Stroke {
-                color: (Color::white() * (i as f32 / 9.0)).with_a(1.0),
-                width: 0.01,
-                line_end: barium::LineEnd::Round,
-            }),
+            Some(Stroke::new(
+                (Color::white() * (i as f32 / 9.0)).with_a(1.0),
+                0.01,
+                barium::LineEnd::Round,
+            )),
             None,
         );
 

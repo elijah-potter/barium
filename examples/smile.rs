@@ -45,15 +45,15 @@ fn main() -> anyhow::Result<()> {
         Vec2::new(-0.5, -0.3),
         Vec2::Y * -0.5,
         Vec2::new(0.5, -0.3),
-        None,
-        Some(Color::black()),
+        Some(Stroke::new(Color::black(), 0.02, LineEnd::Round)),
+        None
     );
 
     // Save to png
     let png = canvas.render(SkiaRenderer::new(
         UVec2::splat(1000),
-        Some(Color::black()),
-        false,
+        None,
+        true,
         true,
     ));
     png.save("smile.png")?;
@@ -61,7 +61,7 @@ fn main() -> anyhow::Result<()> {
     // Save to svg
     let svg = canvas.render(SvgRenderer::new(
         Vec2::splat(1000.0),
-        Some(Color::black()),
+        None,
         false,
         false,
         32,
