@@ -5,7 +5,7 @@ use glam::Vec2;
 ///
 /// Primarily meant to be used through [Canvas::draw_path] and [Canvas::draw_path_absolute].
 /// The "pen" starts at the origin.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PathBuilder {
     points_per_unit: usize,
     shapes: Vec<Vec<Vec2>>,
@@ -35,7 +35,10 @@ impl PathBuilder {
 
     /// Draw a straight line to another spot on the canvas.
     pub fn line_to<P: Into<Vec2>>(mut self, point: P) -> Self {
-        self.current_shape.push(point.into());
+        let point = point.into();
+        if self.current_shape[self.current_shape.len() - 1] != point {
+            self.current_shape.push(point);
+        }
         self
     }
 
@@ -91,17 +94,21 @@ impl PathBuilder {
         self
     }
 
-    /// Close the path.
-    pub fn close(mut self) -> Self {
+    /// Get the first point in the path.
+    pub fn first_point(&self) -> Vec2 {
         if let Some(first) = self.shapes.first() {
-            let start = first[0];
-            self = self.line_to(start);
+            first[0]
         } else if self.current_shape.len() > 1 {
-            let start = self.current_shape[0];
-            self = self.line_to(start);
+            self.current_shape[0]
+        } else {
+            unreachable!()
         }
+    }
 
-        self
+    /// Close the path.
+    pub fn close(self) -> Self {
+        let first_point = self.first_point();
+        self.line_to(first_point)
     }
 
     pub(crate) fn build(
