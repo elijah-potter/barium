@@ -159,7 +159,9 @@ impl Canvas {
         self.to_world_affine = self.to_camera_affine.inverse();
     }
 
-    /// Moves the camera by a certain amount. This is not effected by zoom.
+    /// Moves the camera by a certain amount. This is effected by zoom.
+    /// 
+    /// For example, if the zoom is set to `1/100` and the camera is moved by `(1.0, 1.0)`, it will actually be moving (100.0, 100.0).
     pub fn move_camera<P: Into<Vec2>>(&mut self, translation: P) {
         self.to_camera_affine.translation -= translation.into();
         self.to_world_affine = self.to_camera_affine.inverse();
@@ -168,7 +170,7 @@ impl Canvas {
     /// Zoom camera
     pub fn zoom_camera(&mut self, zoom: f32) {
         self.to_camera_affine.matrix2 *= zoom;
-        self.to_world_affine = self.to_camera_affine.inverse();
+        self.to_world_affine.matrix2 = self.to_camera_affine.matrix2.inverse();
         self.zoom *= zoom;
     }
 
@@ -722,5 +724,33 @@ mod tests {
         assert_vec2_eq(canvas.to_world_space(-Vec2::ONE), Vec2::new(-1.0, 1.0));
         assert_vec2_eq(canvas.to_world_space(Vec2::new(-1.0, 1.0)), Vec2::ONE);
         assert_vec2_eq(canvas.to_world_space(Vec2::new(1.0, -1.0)), -Vec2::ONE);
+    }
+
+    /// Verify that a zoomed camera correctly transforms points when converting to camera space.
+    #[test]
+    fn zoom_transform_world_camera() {
+        let mut canvas = Canvas::default();
+
+        canvas.zoom_camera(2.0);
+
+        assert_vec2_eq(canvas.to_camera_space(Vec2::ZERO), Vec2::ZERO);
+        assert_vec2_eq(canvas.to_camera_space(Vec2::ONE), Vec2::ONE * 2.0);
+        assert_vec2_eq(canvas.to_camera_space(-Vec2::ONE), Vec2::ONE * -2.0);
+        assert_vec2_eq(canvas.to_camera_space(Vec2::new(-1.0, 1.0)), Vec2::new(-2.0, 2.0));
+        assert_vec2_eq(canvas.to_camera_space(Vec2::new(1.0, -1.0)), Vec2::new(2.0, -2.0));
+    }
+
+    /// Verify that a zoomed camera correctly transforms points when converting to world space.
+    #[test]
+    fn zoom_transform_camera_world() {
+        let mut canvas = Canvas::default();
+
+        canvas.zoom_camera(2.0);
+
+        assert_vec2_eq(canvas.to_world_space(Vec2::ZERO), Vec2::ZERO);
+        assert_vec2_eq(canvas.to_world_space(Vec2::ONE), Vec2::ONE * 0.5);
+        assert_vec2_eq(canvas.to_world_space(-Vec2::ONE), Vec2::ONE * -0.5);
+        assert_vec2_eq(canvas.to_world_space(Vec2::new(-1.0, 1.0)), Vec2::new(-0.5, 0.5));
+        assert_vec2_eq(canvas.to_world_space(Vec2::new(1.0, -1.0)), Vec2::new(0.5, -0.5));
     }
 }
