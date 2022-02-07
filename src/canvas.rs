@@ -164,7 +164,7 @@ impl Canvas {
     /// For example, if the zoom is set to `1/100` and the camera is moved by `(1.0, 1.0)`, it will actually be moving (100.0, 100.0).
     pub fn move_camera<P: Into<Vec2>>(&mut self, translation: P) {
         self.to_camera_affine.translation -= translation.into();
-        self.to_world_affine = self.to_camera_affine.inverse();
+        self.to_world_affine.translation = -self.to_camera_affine.translation;
     }
 
     /// Zoom camera
