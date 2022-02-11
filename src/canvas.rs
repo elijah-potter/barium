@@ -1,7 +1,7 @@
 use std::f32::consts::PI;
 
 use crate::{color::Color, PathBuilder};
-use glam::{Affine2, Mat2, Vec2};
+use glam::{Mat2, Vec2};
 
 use retain_mut::RetainMut;
 
@@ -86,8 +86,9 @@ pub trait Renderer {
 pub struct Canvas {
     points_per_unit: usize,
     zoom: f32,
-    to_camera_affine: Affine2,
-    to_world_affine: Affine2,
+    translation: Vec2,
+    to_camera_matrix: Mat2,
+    to_world_matrix: Mat2,
     shapes: Vec<Shape>,
 }
 
@@ -97,8 +98,9 @@ impl Default for Canvas {
         Self {
             points_per_unit: 1000,
             zoom: 1.0,
-            to_camera_affine: Affine2::IDENTITY,
-            to_world_affine: Affine2::IDENTITY,
+            translation: Vec2::ZERO,
+            to_camera_matrix: Mat2::IDENTITY,
+            to_world_matrix: Mat2::IDENTITY,
             shapes: Vec::new(),
         }
     }
@@ -112,8 +114,9 @@ impl Canvas {
         Self {
             points_per_unit,
             zoom: 1.0,
-            to_camera_affine: Affine2::IDENTITY,
-            to_world_affine: Affine2::IDENTITY,
+            translation: Vec2::ZERO,
+            to_camera_matrix: Mat2::IDENTITY,
+            to_world_matrix: Mat2::IDENTITY,
             shapes: Vec::new(),
         }
     }
@@ -152,25 +155,25 @@ impl Canvas {
         self.shapes.as_mut_slice()
     }
 
-    /// Rotate the camera clockwise.
+    /// Rotate the camera counter-clockwise.
     pub fn rotate_camera(&mut self, radians: f32) {
         let rotate_mat = Mat2::from_angle(radians);
-        self.to_camera_affine.matrix2 = rotate_mat.mul_mat2(&self.to_camera_affine.matrix2);
-        self.to_world_affine = self.to_camera_affine.inverse();
+        self.to_camera_matrix = rotate_mat.mul_mat2(&self.to_camera_matrix);
+        self.to_world_matrix = self.to_camera_matrix.inverse();
     }
 
     /// Moves the camera by a certain amount. This is effected by zoom.
     /// 
     /// For example, if the zoom is set to `1/100` and the camera is moved by `(1.0, 1.0)`, it will actually be moving (100.0, 100.0).
     pub fn move_camera<P: Into<Vec2>>(&mut self, translation: P) {
-        self.to_camera_affine.translation -= translation.into();
-        self.to_world_affine.translation = -self.to_camera_affine.translation;
+        self.translation -= translation.into();
+        self.translation = -self.translation;
     }
 
     /// Zoom camera
     pub fn zoom_camera(&mut self, zoom: f32) {
-        self.to_camera_affine.matrix2 *= zoom;
-        self.to_world_affine.matrix2 = self.to_camera_affine.matrix2.inverse();
+        self.to_camera_matrix *= zoom;
+        self.to_world_matrix = self.to_camera_matrix.inverse();
         self.zoom *= zoom;
     }
 
@@ -586,12 +589,12 @@ impl Canvas {
     /// Transform any given point from world space to camera space.
     /// Allows to scale to a given resolution width.
     pub fn to_camera_space<P: Into<Vec2>>(&self, point: P) -> Vec2 {
-        self.to_camera_affine.transform_point2(point.into())
+        self.to_camera_matrix.mul_vec2(point.into() - self.translation)
     }
 
     /// Transform any given point from camera space to world space.
     pub fn to_world_space<P: Into<Vec2>>(&self, point: P) -> Vec2 {
-        self.to_world_affine.transform_point2(point.into())
+        self.to_world_matrix.mul_vec2(point.into()) + self.translation
     }
 
     /// Get the canvas' points per unit.
@@ -616,6 +619,7 @@ mod tests {
     const EPSILON: f32 = 0.001;
 
     /// Assert that two [Vec2] are within [EPSILON] of each other.
+    #[inline]
     fn assert_vec2_eq<P: Into<Vec2>>(a: P, b: P) {
         let a: Vec2 = a.into();
         let b: Vec2 = b.into();
@@ -752,5 +756,37 @@ mod tests {
         assert_vec2_eq(canvas.to_world_space(-Vec2::ONE), Vec2::ONE * -0.5);
         assert_vec2_eq(canvas.to_world_space(Vec2::new(-1.0, 1.0)), Vec2::new(-0.5, 0.5));
         assert_vec2_eq(canvas.to_world_space(Vec2::new(1.0, -1.0)), Vec2::new(0.5, -0.5));
+    }
+
+    /// Verify that a fully moved, rotated, and zoomed camera correctly transforms points when converting to camera space.
+    #[test]
+    fn full_transform_world_camera() {
+        let mut canvas = Canvas::default();
+
+        canvas.move_camera(Vec2::ONE);
+        canvas.rotate_camera(PI / 2.0);
+        canvas.zoom_camera(2.0);
+
+        assert_vec2_eq(canvas.to_camera_space(Vec2::ZERO), Vec2::new(2.0, -2.0));
+        assert_vec2_eq(canvas.to_camera_space(Vec2::ONE), Vec2::ZERO);
+        assert_vec2_eq(canvas.to_camera_space(-Vec2::ONE), Vec2::new(4.0, -4.0));
+        assert_vec2_eq(canvas.to_camera_space(Vec2::new(-1.0, 1.0)), Vec2::new(0.0,-4.0));
+        assert_vec2_eq(canvas.to_camera_space(Vec2::new(1.0, -1.0)), Vec2::new(4.0, 0.0));
+    }
+
+    /// Verify that a fully moved, rotated, and zoomed camera correctly transforms points when converting to world space.
+    #[test]
+    fn full_transform_camera_world() {
+        let mut canvas = Canvas::default();
+
+        canvas.move_camera(Vec2::ONE);
+        canvas.rotate_camera(PI / 2.0);
+        canvas.zoom_camera(2.0);
+
+        assert_vec2_eq(canvas.to_world_space(Vec2::ZERO), Vec2::ONE);
+        assert_vec2_eq(canvas.to_world_space(Vec2::ONE), Vec2::new(1.5, 0.5));
+        assert_vec2_eq(canvas.to_world_space(-Vec2::ONE), Vec2::new(0.5, 1.5));
+        assert_vec2_eq(canvas.to_world_space(Vec2::new(-1.0, 1.0)), Vec2::new(1.5,1.5));
+        assert_vec2_eq(canvas.to_world_space(Vec2::new(1.0, -1.0)), Vec2::new(0.5, 0.5));
     }
 }
