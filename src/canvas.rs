@@ -6,6 +6,8 @@ use glam::{Mat2, Vec2};
 use retain_mut::RetainMut;
 
 /// A polygonal shape with a stroke and fill.
+/// 
+/// Nothing will be drawn if there are 1 or fewer points.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Shape {
     /// Points that make up the shape.
@@ -25,6 +27,11 @@ impl Shape {
         } else {
             self.points[0] == self.points[self.points.len() - 1]
         }
+    }
+
+    /// Checks if the shape contains more than 1 point.
+    pub fn is_drawable(&self) -> bool{
+        self.points.len() > 1
     }
 }
 

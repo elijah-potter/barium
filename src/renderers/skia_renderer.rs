@@ -54,6 +54,10 @@ impl Renderer for SkiaRenderer {
     type Output = RgbaImage;
 
     fn render(&mut self, shape: &Shape) {
+        if !shape.is_drawable(){
+            return;
+        }
+
         // Transform from Camera Space (range from (-1, -1) to (1, 1)) to Image Space (range from (0, 0) to image size).
         let mut points = shape.points.iter().map(|p| {
             let p = Vec2::new(p.x, -p.y) + self.center_offset;

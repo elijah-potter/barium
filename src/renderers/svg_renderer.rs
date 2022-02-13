@@ -73,6 +73,10 @@ impl Renderer for SvgRenderer {
     type Output = String;
 
     fn render(&mut self, shape: &Shape) {
+        if !shape.is_drawable(){
+            return;
+        }
+
         // Check if shape approximates a circle, if so, render it as such.
         let is_circle = if shape.points.len() >= self.circle_vertex_threshold && shape.is_polygon()
         {
