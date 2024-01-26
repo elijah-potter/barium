@@ -46,11 +46,11 @@ impl SvgRenderer {
         }
 
         let (scale, center_offset) = if preserve_height {
-            let scale = size.y as f32 / 2.0;
-            (scale, Vec2::new(size.x as f32 / 2.0 / scale, 1.0))
+            let scale = size.y / 2.0;
+            (scale, Vec2::new(size.x / 2.0 / scale, 1.0))
         } else {
-            let scale = size.x as f32 / 2.0;
-            (scale, Vec2::new(1.0, size.y as f32 / 2.0 / scale))
+            let scale = size.x / 2.0;
+            (scale, Vec2::new(1.0, size.y / 2.0 / scale))
         };
 
         let circle_vertex_threshold = if circle_vertex_threshold < 3 {
@@ -73,7 +73,7 @@ impl Renderer for SvgRenderer {
     type Output = String;
 
     fn render(&mut self, shape: &Shape) {
-        if !shape.is_drawable(){
+        if !shape.is_drawable() {
             return;
         }
 

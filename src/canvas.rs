@@ -3,10 +3,8 @@ use std::f32::consts::PI;
 use crate::{color::Color, PathBuilder};
 use glam::{Mat2, Vec2};
 
-use retain_mut::RetainMut;
-
 /// A polygonal shape with a stroke and fill.
-/// 
+///
 /// Nothing will be drawn if there are 1 or fewer points.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Shape {
@@ -30,7 +28,7 @@ impl Shape {
     }
 
     /// Checks if the shape contains more than 1 point.
-    pub fn is_drawable(&self) -> bool{
+    pub fn is_drawable(&self) -> bool {
         self.points.len() > 1
     }
 }
@@ -170,7 +168,7 @@ impl Canvas {
     }
 
     /// Moves the camera by a certain amount. This is effected by zoom.
-    /// 
+    ///
     /// For example, if the zoom is set to `1/100` and the camera is moved by `(1.0, 1.0)`, it will actually be moving (100.0, 100.0).
     pub fn move_camera<P: Into<Vec2>>(&mut self, translation: P) {
         self.translation -= translation.into();
@@ -205,7 +203,7 @@ impl Canvas {
         }
 
         let mut last_point = Vec2::ZERO * f32::INFINITY;
-        RetainMut::retain_mut(&mut points, |point| {
+        points.retain_mut(|point| {
             let r = last_point != *point;
             last_point = *point;
             *point = self.to_world_space(last_point);
@@ -596,7 +594,8 @@ impl Canvas {
     /// Transform any given point from world space to camera space.
     /// Allows to scale to a given resolution width.
     pub fn to_camera_space<P: Into<Vec2>>(&self, point: P) -> Vec2 {
-        self.to_camera_matrix.mul_vec2(point.into() - self.translation)
+        self.to_camera_matrix
+            .mul_vec2(point.into() - self.translation)
     }
 
     /// Transform any given point from camera space to world space.
@@ -747,8 +746,14 @@ mod tests {
         assert_vec2_eq(canvas.to_camera_space(Vec2::ZERO), Vec2::ZERO);
         assert_vec2_eq(canvas.to_camera_space(Vec2::ONE), Vec2::ONE * 2.0);
         assert_vec2_eq(canvas.to_camera_space(-Vec2::ONE), Vec2::ONE * -2.0);
-        assert_vec2_eq(canvas.to_camera_space(Vec2::new(-1.0, 1.0)), Vec2::new(-2.0, 2.0));
-        assert_vec2_eq(canvas.to_camera_space(Vec2::new(1.0, -1.0)), Vec2::new(2.0, -2.0));
+        assert_vec2_eq(
+            canvas.to_camera_space(Vec2::new(-1.0, 1.0)),
+            Vec2::new(-2.0, 2.0),
+        );
+        assert_vec2_eq(
+            canvas.to_camera_space(Vec2::new(1.0, -1.0)),
+            Vec2::new(2.0, -2.0),
+        );
     }
 
     /// Verify that a zoomed camera correctly transforms points when converting to world space.
@@ -761,8 +766,14 @@ mod tests {
         assert_vec2_eq(canvas.to_world_space(Vec2::ZERO), Vec2::ZERO);
         assert_vec2_eq(canvas.to_world_space(Vec2::ONE), Vec2::ONE * 0.5);
         assert_vec2_eq(canvas.to_world_space(-Vec2::ONE), Vec2::ONE * -0.5);
-        assert_vec2_eq(canvas.to_world_space(Vec2::new(-1.0, 1.0)), Vec2::new(-0.5, 0.5));
-        assert_vec2_eq(canvas.to_world_space(Vec2::new(1.0, -1.0)), Vec2::new(0.5, -0.5));
+        assert_vec2_eq(
+            canvas.to_world_space(Vec2::new(-1.0, 1.0)),
+            Vec2::new(-0.5, 0.5),
+        );
+        assert_vec2_eq(
+            canvas.to_world_space(Vec2::new(1.0, -1.0)),
+            Vec2::new(0.5, -0.5),
+        );
     }
 
     /// Verify that a fully moved, rotated, and zoomed camera correctly transforms points when converting to camera space.
@@ -777,8 +788,14 @@ mod tests {
         assert_vec2_eq(canvas.to_camera_space(Vec2::ZERO), Vec2::new(2.0, -2.0));
         assert_vec2_eq(canvas.to_camera_space(Vec2::ONE), Vec2::ZERO);
         assert_vec2_eq(canvas.to_camera_space(-Vec2::ONE), Vec2::new(4.0, -4.0));
-        assert_vec2_eq(canvas.to_camera_space(Vec2::new(-1.0, 1.0)), Vec2::new(0.0,-4.0));
-        assert_vec2_eq(canvas.to_camera_space(Vec2::new(1.0, -1.0)), Vec2::new(4.0, 0.0));
+        assert_vec2_eq(
+            canvas.to_camera_space(Vec2::new(-1.0, 1.0)),
+            Vec2::new(0.0, -4.0),
+        );
+        assert_vec2_eq(
+            canvas.to_camera_space(Vec2::new(1.0, -1.0)),
+            Vec2::new(4.0, 0.0),
+        );
     }
 
     /// Verify that a fully moved, rotated, and zoomed camera correctly transforms points when converting to world space.
@@ -793,7 +810,13 @@ mod tests {
         assert_vec2_eq(canvas.to_world_space(Vec2::ZERO), Vec2::ONE);
         assert_vec2_eq(canvas.to_world_space(Vec2::ONE), Vec2::new(1.5, 0.5));
         assert_vec2_eq(canvas.to_world_space(-Vec2::ONE), Vec2::new(0.5, 1.5));
-        assert_vec2_eq(canvas.to_world_space(Vec2::new(-1.0, 1.0)), Vec2::new(1.5,1.5));
-        assert_vec2_eq(canvas.to_world_space(Vec2::new(1.0, -1.0)), Vec2::new(0.5, 0.5));
+        assert_vec2_eq(
+            canvas.to_world_space(Vec2::new(-1.0, 1.0)),
+            Vec2::new(1.5, 1.5),
+        );
+        assert_vec2_eq(
+            canvas.to_world_space(Vec2::new(1.0, -1.0)),
+            Vec2::new(0.5, 0.5),
+        );
     }
 }

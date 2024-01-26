@@ -6,11 +6,10 @@ edition = "2021"
 [dependencies]
 glam = "0.20.1"
 tiny-skia = { version = "0.6.1", optional = true }
-retain_mut = "0.1.5"
 
-# Keep everything but rayon for portability, and gif because it isn't useful.
+# Keep everything but rayon for portability and gif because it isn't useful.
 [dependencies.image]
-version = "0.23.14"
+version = "0.24.7"
 default-features = false
 optional = true
 features = [
@@ -29,7 +28,7 @@ features = [
 ]
 
 [dev-dependencies]
-anyhow = "1.0.53"
+anyhow = "1.0.75"
 
 [features]
 default = ["tiny_skia_renderer", "svg_renderer"]
